@@ -38,3 +38,8 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+bootJar {
+	archiveBaseName.set('donmani_server')  // 원하는 JAR 파일 이름
+	archiveVersion.set('0.0.1-SNAPSHOT')  // 버전 지정
+}
