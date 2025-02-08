@@ -1,10 +1,3 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
-
 name: Java CI with Gradle
 
 on:
@@ -12,15 +5,37 @@ on:
     branches:
       - dev
 
-permissions: write-all #테스트 결과 작성을 위해 쓰기권한 추가
+permissions: write-all # 테스트 결과 작성을 위해 쓰기 권한 추가
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testdb
+          MYSQL_USER: testuser
+          MYSQL_PASSWORD: testpassword
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --host=localhost --user=testuser --password=testpassword"
+          --health-interval=10s
+          --health-timeout=10s
+          --health-retries=5
+
+    env:
+      SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/testdb
+      SPRING_DATASOURCE_USERNAME: testuser
+      SPRING_DATASOURCE_PASSWORD: testpassword
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL8Dialect
 
     steps:
-      #jdk 세팅
-      - name: check out
+      # JDK 세팅
+      - name: Check out repository
         uses: actions/checkout@v3
 
       - name: Set up JDK 17
@@ -29,7 +44,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-        #gradle 캐싱
+      # Gradle 캐싱
       - name: Gradle Caching
         uses: actions/cache@v3
         with:
@@ -40,20 +55,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      ### CI
-      #gradlew 권한 추가
+      # CI
       - name: Grant Execute Permission For Gradlew
         run: chmod +x gradlew
 
-      #test를 제외한 프로젝트 빌드
+      # MySQL이 제대로 실행되도록 대기 (선택 사항)
+      - name: Wait for MySQL to be ready
+        run: sleep 15
+
+      # 테스트를 제외한 프로젝트 빌드
       - name: Build With Gradle
         run: ./gradlew build -x test
 
-      #test코드 빌드
+      # 테스트 실행
       - name: Build With Test
         run: ./gradlew test
 
-      #테스트 결과 파일 생성
+      # 테스트 결과 파일 생성
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: ${{ always() }}
