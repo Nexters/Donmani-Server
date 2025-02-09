@@ -7,5 +7,5 @@ import lombok.Getter;
 @AllArgsConstructor
 public class UserRegisterResponseDTO {
 	private String userKey;
-	private String nickname;
+	private String userName;
 }
