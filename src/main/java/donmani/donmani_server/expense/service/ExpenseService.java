@@ -1,6 +1,5 @@
 package donmani.donmani_server.expense.service;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,7 +27,7 @@ public class ExpenseService {
 
 	@Transactional
 	public void addExpense(ExpenseRequestDTO request) {
-		Long userId = userService.getUserIdByUserKey(request.getDeviceId());
+		Long userId = userService.getUserIdByUserKey(request.getUserKey());
 
 		List<Expense> expenses = request.getRecords().stream()
 			.flatMap(record -> {
@@ -60,8 +59,8 @@ public class ExpenseService {
 
 
 	@Transactional(readOnly = true)
-	public ExpenseResponseDTO getExpenses(String deviceId, int year, int month) {
-		Long userId = userService.getUserIdByUserKey(deviceId);
+	public ExpenseResponseDTO getExpenses(String userKey, int year, int month) {
+		Long userId = userService.getUserIdByUserKey(userKey);
 
 		if (userId == null) {
 			throw new EntityNotFoundException("유저 정보를 찾을 수 없습니다.");
@@ -90,7 +89,7 @@ public class ExpenseService {
 			.collect(Collectors.toList());
 
 		return ExpenseResponseDTO.builder()
-			.deviceId(deviceId)
+			.userKey(userKey)
 			.records(records)
 			.build();
 	}

@@ -14,6 +14,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class ExpenseResponseDTO {
-	private String deviceId;
+	private String userKey;
 	private List<RecordDTO> records;
 }

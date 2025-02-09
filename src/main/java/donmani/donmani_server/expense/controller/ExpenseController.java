@@ -20,12 +20,12 @@ import lombok.RequiredArgsConstructor;
 public class ExpenseController {
 	private final ExpenseService expenseService;
 
-	@GetMapping("/{deviceId}")
+	@GetMapping("/{userKey}")
 	public ResponseEntity<ExpenseResponseDTO> getExpenses(
-		@PathVariable String deviceId,
+		@PathVariable String userKey,
 		@RequestParam int year,
 		@RequestParam int month) {
-		ExpenseResponseDTO response = expenseService.getExpenses(deviceId, year, month);
+		ExpenseResponseDTO response = expenseService.getExpenses(userKey, year, month);
 		return ResponseEntity.ok(response);
 	}
 
