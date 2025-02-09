@@ -48,4 +48,11 @@ public class UserService {
 
 		return response;
 	}
+
+	@Transactional
+	public Long getUserIdByUserKey(String userKey) {
+		return userRepository.findByUserKey(userKey)
+			.orElseThrow(() -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다."))
+			.getId();
+	}
 }
