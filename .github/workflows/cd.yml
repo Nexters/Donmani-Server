@@ -75,7 +75,7 @@ jobs:
       with:
         host: ${{ secrets.SERVER_IP }}
         username: ${{ secrets.SERVER_USER }}
-        key: ${{ secrets.SERVER_PASSWORD }}
+        password: ${{ secrets.SERVER_PASSWORD }}
         envs: GITHUB_SHA
         script: |
           docker stop donmani
