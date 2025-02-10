@@ -82,4 +82,4 @@ jobs:
           docker rm donmani
           sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/donmani
           docker run -d --name donmani -p 8080:8080 ${{ secrets.DOCKER_HUB_USERNAME }}/donmani
-          docker rmi -f $(docker images -f "dangling=true" -q)
+          docker images -f "dangling=true" -q | xargs -r docker rmi -f
