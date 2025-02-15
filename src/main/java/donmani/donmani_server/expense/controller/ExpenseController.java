@@ -20,12 +20,21 @@ import lombok.RequiredArgsConstructor;
 public class ExpenseController {
 	private final ExpenseService expenseService;
 
-	@GetMapping("/{userKey}")
-	public ResponseEntity<ExpenseResponseDTO> getExpenses(
+	@GetMapping("/calendar/{userKey}")
+	public ResponseEntity<ExpenseResponseDTO> getExpensesCalendar(
 		@PathVariable String userKey,
 		@RequestParam int year,
 		@RequestParam int month) {
-		ExpenseResponseDTO response = expenseService.getExpenses(userKey, year, month);
+		ExpenseResponseDTO response = expenseService.getExpenses(userKey, year, month, false);
+		return ResponseEntity.ok(response);
+	}
+
+	@GetMapping("/list/{userKey}")
+	public ResponseEntity<ExpenseResponseDTO> getExpensesList(
+			@PathVariable String userKey,
+			@RequestParam int year,
+			@RequestParam int month) {
+		ExpenseResponseDTO response = expenseService.getExpenses(userKey, year, month, true);
 		return ResponseEntity.ok(response);
 	}
 
