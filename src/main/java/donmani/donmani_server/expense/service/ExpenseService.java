@@ -1,10 +1,14 @@
 package donmani.donmani_server.expense.service;
 
-import java.util.Collections;
-import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +28,8 @@ public class ExpenseService {
 
 	private final ExpenseRepository expenseRepository;
 	private final UserService userService;
+
+	private final static int SIZE = 20; // 전체 조회 페이지 사이즈 고정
 
 	@Transactional
 	public void addExpense(ExpenseRequestDTO request) {
@@ -59,7 +65,7 @@ public class ExpenseService {
 
 
 	@Transactional(readOnly = true)
-	public ExpenseResponseDTO getExpenses(String userKey, int year, int month) {
+	public ExpenseResponseDTO getExpenses(String userKey, int year, int month, boolean sortedDesc) {
 		Long userId = userService.getUserIdByUserKey(userKey);
 
 		if (userId == null) {
@@ -69,29 +75,65 @@ public class ExpenseService {
 		// userId와 year, month로 직접 expense를 조회
 		List<Expense> expenses = expenseRepository.findByUserIdAndMonth(userId, year, month);
 
-		// 하루에 하나의 기록이라면, groupBy 없이 바로 리스트로 변환
-		List<RecordDTO> records = expenses.stream()
-			.map(expense -> {
-				// 해당 expense에서 contents가 없으면 null로 설정
-				List<ContentDTO> contents = (expense.getCategory() == null || expense.getFlag() == null || expense.getMemo() == null)
-					? Collections.emptyList()
-					: List.of(ContentDTO.builder()
-					.flag(expense.getFlag())
-					.category(expense.getCategory())
-					.memo(expense.getMemo())
-					.build());
-
-				return RecordDTO.builder()
-					.date(expense.getCreatedAt().toLocalDate()) // 날짜 설정
-					.contents(contents)  // 내용이 없으면 null
+		if(expenses.isEmpty()) {
+			return ExpenseResponseDTO.builder()
+					.userKey(userKey)
+					.records(null)
 					.build();
-			})
-			.collect(Collectors.toList());
+		}
 
 		return ExpenseResponseDTO.builder()
 			.userKey(userKey)
-			.records(records)
+			.records(expenseToDto(expenses, sortedDesc))
 			.build();
+	}
+
+	private List<RecordDTO> expenseToDto(List<Expense> expenses, boolean sortedDesc) {
+		Map<LocalDate, List<ContentDTO>> groupedContents = expenses.stream()
+				.collect(Collectors.groupingBy(
+						expense -> expense.getCreatedAt().toLocalDate(), // 날짜별 그룹핑 Map 형태로 담아줌
+						Collectors.mapping(exp -> {
+							if (exp.getCategory() == null && exp.getFlag() == null && exp.getMemo() == null) {
+								return null;
+							}
+							return ContentDTO.builder()
+									.flag(exp.getFlag())
+									.category(exp.getCategory())
+									.memo(exp.getMemo())
+									.build();
+						}, Collectors.toList())
+				));
+
+		return groupedContents.entrySet().stream()
+				.map(entry -> RecordDTO.of(entry.getKey(), entry.getValue())
+				)
+				.sorted(sortedDesc ? Comparator.comparing(RecordDTO::getDate).reversed() : Comparator.comparing(RecordDTO::getDate))
+				.collect(Collectors.toList());
+	}
+	// 미사용
+	@Transactional(readOnly = true)
+	public ExpenseResponseDTO getAllExpenses(String userKey, int page) {
+		Long userId = userService.getUserIdByUserKey(userKey);
+
+		if (userId == null) {
+			throw new EntityNotFoundException("유저 정보를 찾을 수 없습니다.");
+		}
+
+		// 시간순 정렬 20개
+		Page<LocalDateTime> localDateTimes = expenseRepository.findDistinctCreatedAt(userId, PageRequest.of(page, SIZE));
+		if (localDateTimes.isEmpty()) {
+			return ExpenseResponseDTO.builder()
+					.userKey(userKey)
+					.records(null)
+					.build();
+		}
+
+		List<Expense> expenses = expenseRepository.findByCreatedAtIn(userId, localDateTimes.getContent());
+
+		return ExpenseResponseDTO.builder()
+				.userKey(userKey)
+				.records(expenseToDto(expenses, true))
+				.build();
 	}
 
 }

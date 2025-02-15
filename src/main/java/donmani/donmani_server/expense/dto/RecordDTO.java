@@ -16,8 +16,16 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL) // null 값 제외
 public class RecordDTO {
 	private LocalDate date;
 	private List<ContentDTO> contents; // null 가능
+
+	public static RecordDTO of(LocalDate localDate, List<ContentDTO> contents) {
+		RecordDTO recordDTO = new RecordDTO();
+
+		recordDTO.setDate(localDate);
+		recordDTO.setContents(contents.get(0) == null ? null : contents);
+
+		return recordDTO;
+	}
 }
