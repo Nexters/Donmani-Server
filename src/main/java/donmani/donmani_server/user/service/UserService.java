@@ -1,5 +1,7 @@
 package donmani.donmani_server.user.service;
 
+import java.util.Optional;
+
 import donmani.donmani_server.user.dto.UserRegisterResponseDTO;
 import donmani.donmani_server.user.dto.UpdateUsernameResponseDTO;
 import donmani.donmani_server.user.entity.User;
@@ -7,6 +9,7 @@ import donmani.donmani_server.user.repository.UserRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -17,20 +20,27 @@ public class UserService {
 
 	@Transactional
 	public UserRegisterResponseDTO registerUser(String userKey) {
-		User user = userRepository.findByUserKey(userKey)
-			.orElseGet(() -> {
-				String randomUsername = User.generateRandomUsername();
+		UserRegisterResponseDTO response;
+		Optional<User> user = userRepository.findByUserKey(userKey);
 
-				User newUser = User.builder()
-					.userKey(userKey)
-					.name(randomUsername)
-					.level(1)
-					.build();
+		// 1. 신규 유저
+		if (user.isEmpty()) {
+			String randomUsername = User.generateRandomUsername();
 
-				return userRepository.save(newUser);
-			});
+			User newUser = User.builder()
+				.userKey(userKey)
+				.name(randomUsername + "의 별통이")
+				.level(1)
+				.build();
 
-		UserRegisterResponseDTO response = new UserRegisterResponseDTO(user.getUserKey(), user.getName());
+			userRepository.save(newUser);
+
+			response = new UserRegisterResponseDTO(true, newUser.getUserKey(), newUser.getName());
+		}
+		// 2. 기존 유저
+		else {
+			response = new UserRegisterResponseDTO(false, user.get().getUserKey(), user.get().getName());
+		}
 
 		return response;
 	}
