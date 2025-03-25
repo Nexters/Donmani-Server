@@ -43,6 +43,10 @@ jobs:
           echo "${{ secrets.PROPERTIES_PROD }}" > ./application-prod.properties
         shell: bash
 
+      - name: Add FCM service account JSON key
+        run: |
+          echo "${{ secrets.FCM_SERVICE_ACCOUNT_JSON }}" > ./resources/donmani-5d3f6-firebase-adminsdk-fbsvc-22a01911fd.json
+
       #test를 제외한 프로젝트 빌드
       - name: Build With Gradle
         run: ./gradlew build -x test
@@ -81,5 +85,5 @@ jobs:
           docker stop donmani
           docker rm donmani
           sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/donmani
-          docker run -d --name donmani -p 8080:8080 ${{ secrets.DOCKER_HUB_USERNAME }}/donmani
+          docker run -d --name donmani --network donmani-network -p 8080:8080 ${{ secrets.DOCKER_HUB_USERNAME }}/donmani
           docker images -f "dangling=true" -q | xargs -r docker rmi -f
