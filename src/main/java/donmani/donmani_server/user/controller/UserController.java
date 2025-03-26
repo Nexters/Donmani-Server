@@ -5,11 +5,13 @@ import donmani.donmani_server.user.dto.UpdateUsernameRequestDTO;
 import donmani.donmani_server.user.dto.UpdateUsernameResponseDTO;
 import donmani.donmani_server.user.dto.UserRegisterRequestDTO;
 import donmani.donmani_server.user.dto.UserRegisterResponseDTO;
+import donmani.donmani_server.user.dto.UserRegisterResponseDTOV2;
 import donmani.donmani_server.user.service.UserService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,29 +23,50 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 	private final UserService userService;
 
-	@PostMapping("api/v1/user/register")
-	public ResponseEntity<HttpStatusDTO<UserRegisterResponseDTO>> registerUser(
+	@PostMapping("users/register")
+	public ResponseEntity<UserRegisterResponseDTO> registerUserV1(
 		@Valid @RequestBody UserRegisterRequestDTO request) {
 
-		ResponseEntity<HttpStatusDTO<UserRegisterResponseDTO>> response;
+		UserRegisterResponseDTO response = userService.registerUser(request.getUserKey());
 
-		UserRegisterResponseDTO user = userService.registerUser(request.getUserKey());
+		return ResponseEntity.ok(response);
+	}
 
-		// 1. 신규 유저 -> 201
-		if (user.isNew()) {
+	@PostMapping("api/v1/user/register")
+	public ResponseEntity<HttpStatusDTO<UserRegisterResponseDTOV2>> registerUserV2(
+		@Valid @RequestBody UserRegisterRequestDTO request) {
+
+		ResponseEntity<HttpStatusDTO<UserRegisterResponseDTOV2>> response;
+
+		// 1. userId
+		long userId = userService.getUserIdByUserKeyV2(request.getUserKey());
+
+		// 2.1 신규 유저 -> 201
+		if (userId == -1L) {
+			UserRegisterResponseDTOV2 user = userService.registerUserV2(request.getUserKey());
 			response = ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.CREATED.value(), "신규 유저", user));
 		}
 
-		// 2, 기존 유저 -> 200
+		// 2,2 기존 유저 -> 200
 		else {
+			UserRegisterResponseDTOV2 user = userService.registerUserV2(request.getUserKey());
 			response = ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.OK.value(), "기존 유저", user));
 		}
 
 		return response;
 	}
 
+	@PutMapping("users/update")
+	public ResponseEntity<UpdateUsernameResponseDTO> updateNicknameV1(
+		@Valid @RequestBody UpdateUsernameRequestDTO request) {
+
+		UpdateUsernameResponseDTO response = userService.updateUsername(request.getUserKey(), request.getNewUserName());
+
+		return ResponseEntity.ok(response);
+	}
+
 	@PostMapping("api/v1/user/update")
-	public ResponseEntity<HttpStatusDTO<UpdateUsernameResponseDTO>> updateNickname(
+	public ResponseEntity<HttpStatusDTO<UpdateUsernameResponseDTO>> updateNicknameV2(
 		@Valid @RequestBody UpdateUsernameRequestDTO request) {
 		try {
 			UpdateUsernameResponseDTO user = userService.updateUsername(request.getUserKey(), request.getNewUserName());

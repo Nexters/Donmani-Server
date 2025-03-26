@@ -22,8 +22,17 @@ import lombok.RequiredArgsConstructor;
 public class ExpenseController {
 	private final ExpenseService expenseService;
 
+	@GetMapping("expenses/calendar/{userKey}")
+	public ResponseEntity<ExpenseResponseDTO> getExpensesCalendarV1(
+		@PathVariable String userKey,
+		@RequestParam int year,
+		@RequestParam int month) {
+		ExpenseResponseDTO response = expenseService.getExpenses(userKey, year, month, false);
+		return ResponseEntity.ok(response);
+	}
+
 	@GetMapping("api/v1/expenses/calendar/{userKey}")
-	public ResponseEntity<HttpStatusDTO<ExpenseResponseDTO>> getExpensesCalendar(
+	public ResponseEntity<HttpStatusDTO<ExpenseResponseDTO>> getExpensesCalendarV2(
 		@PathVariable String userKey,
 		@RequestParam int year,
 		@RequestParam int month) {
@@ -37,7 +46,7 @@ public class ExpenseController {
 	}
 
 	@GetMapping("api/v1/expenses/list/{userKey}")
-	public ResponseEntity<HttpStatusDTO<ExpenseResponseDTO>> getExpensesList(
+	public ResponseEntity<HttpStatusDTO<ExpenseResponseDTO>> getExpensesListV2(
 		@PathVariable String userKey,
 		@RequestParam int year,
 		@RequestParam int month) {
@@ -50,11 +59,32 @@ public class ExpenseController {
 		}
 	}
 
+	@GetMapping("expenses/list/{userKey}")
+	public ResponseEntity<ExpenseResponseDTO> getExpensesListV1(
+		@PathVariable String userKey,
+		@RequestParam int year,
+		@RequestParam int month) {
+		ExpenseResponseDTO response = expenseService.getExpenses(userKey, year, month, true);
+		return ResponseEntity.ok(response);
+	}
+
+	@PostMapping("expenses")
+	public ResponseEntity<Void> addExpenseV1(@RequestBody ExpenseRequestDTO request) {
+		expenseService.addExpense(request);
+		return ResponseEntity.ok().build();
+	}
+
 	@PostMapping("api/v1/expenses")
-	public ResponseEntity<HttpStatusDTO<Void>> addExpense(@RequestBody ExpenseRequestDTO request) {
+	public ResponseEntity<HttpStatusDTO<Void>> addExpenseV2(@RequestBody ExpenseRequestDTO request) {
 		expenseService.addExpense(request);
 
 		return ResponseEntity.ok(
 			HttpStatusDTO.response(HttpStatus.CREATED.value(), "성공", null));
 	}
+
+
+
+
+
+
 }
