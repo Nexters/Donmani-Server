@@ -38,3 +38,6 @@ out/
 
 ### Log ###
 **/*.log
+
+# Firebase Admin SDK JSON Key
+/src/main/resources/*.json

@@ -1,7 +1,7 @@
 package donmani.donmani_server.expense.entity;
 
 public enum CategoryType {
-    // 좋은 소비
+	// 좋은 소비
 	ENERGY, // 활력
 	GROWTH, // 성장
 	HEALING, // 힐링
@@ -10,6 +10,7 @@ public enum CategoryType {
 	DIGNITY, // 품위 유지
 	AFFECTION, // 마음 전달
 	HEALTH, // 건강
+	SAVING, // 절약
 
 	// 2.나쁜 소비
 	GREED, // 욕심
@@ -20,6 +21,7 @@ public enum CategoryType {
 	BOASTFULNESS, // 과시
 	HABIT, // 습관 반복
 	OVERFRUGALITY, // 과한 절약
+	MISS, // 선택 미스
 
 	// 좋은 소비, 나쁜 소비 공통
 	NONE // 카테고리 없음

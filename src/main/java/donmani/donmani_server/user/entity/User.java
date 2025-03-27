@@ -1,5 +1,6 @@
 package donmani.donmani_server.user.entity;
 
+import donmani.donmani_server.fcm.entity.FCMToken;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,6 +22,9 @@ public class User {
 	private String name;
 
 	private int level;
+
+	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private FCMToken fcmToken;
 
 	public static String generateRandomUsername() {
 		String[] adjectives = {"기쁜", "활발한", "멋있는", "즐거운", "당황한", "설레는", "귀여운", "뿌듯한", "시원한", "황홀한"};
