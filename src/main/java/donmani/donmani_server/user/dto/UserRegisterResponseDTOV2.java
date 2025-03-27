@@ -5,8 +5,8 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class UserRegisterResponseDTO {
-	// private boolean isNew;
+public class UserRegisterResponseDTOV2{
+	private boolean isNew;
 	private String userKey;
 	private String userName;
 }
