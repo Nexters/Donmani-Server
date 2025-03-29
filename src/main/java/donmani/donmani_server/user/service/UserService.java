@@ -2,6 +2,7 @@ package donmani.donmani_server.user.service;
 
 import java.util.Optional;
 
+import donmani.donmani_server.expense.dto.NoticeReadDTO;
 import donmani.donmani_server.user.dto.UserRegisterResponseDTO;
 import donmani.donmani_server.user.dto.UpdateUsernameResponseDTO;
 import donmani.donmani_server.user.dto.UserRegisterResponseDTOV2;
@@ -93,5 +94,22 @@ public class UserService {
 			.map(User::getId)
 			.orElse(-1L); // 기본값으로 -1을 리턴
 
+	}
+
+	@Transactional
+	public void markNoticeAsRead(String userKey) {
+		User user = userRepository.findByUserKey(userKey)
+				.orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+		user.setNoticeRead(true); // 공지사항 읽음 처리
+		userRepository.save(user);
+	}
+
+	@Transactional(readOnly = true)
+	public NoticeReadDTO getNoticeReadStatus(String userKey) {
+		User user = userRepository.findByUserKey(userKey)
+				.orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+		return NoticeReadDTO.builder().read(user.isNoticeRead()).build(); // 읽음 여부 반환
 	}
 }

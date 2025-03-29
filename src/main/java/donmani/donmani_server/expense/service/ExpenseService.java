@@ -2,20 +2,20 @@ package donmani.donmani_server.expense.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import donmani.donmani_server.expense.dto.*;
+import donmani.donmani_server.expense.entity.CategoryType;
+import donmani.donmani_server.expense.entity.FlagType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import donmani.donmani_server.expense.dto.ContentDTO;
-import donmani.donmani_server.expense.dto.ExpenseRequestDTO;
-import donmani.donmani_server.expense.dto.ExpenseResponseDTO;
-import donmani.donmani_server.expense.dto.RecordDTO;
 import donmani.donmani_server.expense.entity.Expense;
 import donmani.donmani_server.expense.repository.ExpenseRepository;
 import donmani.donmani_server.user.service.UserService;
@@ -133,6 +133,71 @@ public class ExpenseService {
 		return ExpenseResponseDTO.builder()
 				.userKey(userKey)
 				.records(expenseToDto(expenses, true))
+				.build();
+	}
+
+	@Transactional(readOnly = true)
+	public ExpenseSummaryDTO getYearlyExpenseSummary(String userKey, int year) {
+		Long userId = userService.getUserIdByUserKey(userKey);
+		List<Expense> expenses = expenseRepository.findByUserId(userId);
+
+		Map<Integer, RecordInfoDTO> monthlyRecords = expenses.stream()
+				.filter(exp -> exp.getCreatedAt().getYear() == year)
+				.collect(Collectors.groupingBy(
+						exp -> exp.getCreatedAt().getMonthValue(),
+						Collectors.collectingAndThen(
+								Collectors.toList(),
+								list -> {
+									long recordCount = list.size();
+									int totalDaysInMonth = YearMonth.of(year, list.get(0).getCreatedAt().getMonthValue()).lengthOfMonth();
+									return new RecordInfoDTO(recordCount, totalDaysInMonth);
+								}
+						)
+				));
+
+		return ExpenseSummaryDTO.builder()
+				.year(year)
+				.monthlyRecords(monthlyRecords)
+				.build();
+	}
+
+	@Transactional(readOnly = true)
+	public ExpenseStatisticsDTO getMonthlyExpenseStatistics(String userKey, int year, int month) {
+		Long userId = userService.getUserIdByUserKey(userKey);
+		List<Expense> expenses = expenseRepository.findByUserIdAndMonth(userId, year, month);
+
+		int goodCount = (int) expenses.stream().filter(e -> e.getFlag() == FlagType.GOOD).count();
+		int badCount = (int) expenses.stream().filter(e -> e.getFlag() == FlagType.BAD).count();
+		boolean hasRecords = !expenses.isEmpty();
+
+		return ExpenseStatisticsDTO.builder()
+				.year(year)
+				.month(month)
+				.goodCount(goodCount)
+				.badCount(badCount)
+				.hasRecords(hasRecords)
+				.records(expenses.stream().map(e -> RecordDTO.of(e.getCreatedAt().toLocalDate(), List.of(ContentDTO.builder()
+						.flag(e.getFlag())
+						.category(e.getCategory())
+						.memo(e.getMemo())
+						.build()))).collect(Collectors.toList()))
+				.build();
+	}
+
+	@Transactional(readOnly = true)
+	public CategoryStatisticsDTO getCategoryStatistics(String userKey, int year, int month) {
+		Long userId = userService.getUserIdByUserKey(userKey);
+		List<Expense> expenses = expenseRepository.findByUserIdAndMonth(userId, year, month);
+
+		Map<CategoryType, Integer> categoryCounts = Arrays.stream(CategoryType.values())
+				.collect(Collectors.toMap(category -> category, category -> 0));
+
+		expenses.forEach(expense -> categoryCounts.put(expense.getCategory(), categoryCounts.get(expense.getCategory()) + 1));
+
+		return CategoryStatisticsDTO.builder()
+				.year(year)
+				.month(month)
+				.categoryCounts(categoryCounts)
 				.build();
 	}
 
