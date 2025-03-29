@@ -1,6 +1,7 @@
 package donmani.donmani_server.user.controller;
 
 import donmani.donmani_server.common.httpStatus.HttpStatusDTO;
+import donmani.donmani_server.expense.dto.NoticeReadDTO;
 import donmani.donmani_server.user.dto.UpdateUsernameRequestDTO;
 import donmani.donmani_server.user.dto.UpdateUsernameResponseDTO;
 import donmani.donmani_server.user.dto.UserRegisterRequestDTO;
@@ -10,10 +11,7 @@ import donmani.donmani_server.user.service.UserService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -78,5 +76,17 @@ public class UserController {
 			return ResponseEntity.ok(
 				HttpStatusDTO.response(HttpStatus.INTERNAL_SERVER_ERROR.value(), "유저 정보 없음", null));
 		}
+	}
+
+	@GetMapping("api/v1/notice/status/{userKey}")
+	public ResponseEntity<NoticeReadDTO> getNoticeReadStatus(@PathVariable String userKey) {
+		NoticeReadDTO noticeStatus = userService.getNoticeReadStatus(userKey);
+		return ResponseEntity.ok(noticeStatus);
+	}
+
+	@PutMapping("api/v1/notice/status/{userKey}")
+	public ResponseEntity<Void> markNoticeAsRead(@PathVariable String userKey) {
+		userService.markNoticeAsRead(userKey);
+		return ResponseEntity.ok().build();
 	}
 }
