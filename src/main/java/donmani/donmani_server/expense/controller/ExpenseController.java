@@ -1,5 +1,6 @@
 package donmani.donmani_server.expense.controller;
 
+import donmani.donmani_server.expense.dto.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,11 +12,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import donmani.donmani_server.common.httpStatus.HttpStatusDTO;
-import donmani.donmani_server.expense.dto.ExpenseRequestDTO;
-import donmani.donmani_server.expense.dto.ExpenseResponseDTO;
 import donmani.donmani_server.expense.service.ExpenseService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -82,9 +83,27 @@ public class ExpenseController {
 			HttpStatusDTO.response(HttpStatus.CREATED.value(), "성공", null));
 	}
 
+	// 연도별 소비 기록 요약 조회
+	@GetMapping("api/v1/expenses/summary/{userKey}")
+	public ResponseEntity<ExpenseSummaryDTO> getYearlyExpenseSummary(
+			@PathVariable String userKey, @RequestParam int year) {
+		ExpenseSummaryDTO summary = expenseService.getYearlyExpenseSummary(userKey, year);
+		return ResponseEntity.ok(summary);
+	}
 
+	// 월별 소비 기록 통계 조회
+	@GetMapping("api/v1/expenses/statistics/{userKey}")
+	public ResponseEntity<ExpenseStatisticsDTO> getMonthlyExpenseStatistics(
+			@PathVariable String userKey, @RequestParam int year, @RequestParam int month) {
+		ExpenseStatisticsDTO statistics = expenseService.getMonthlyExpenseStatistics(userKey, year, month);
+		return ResponseEntity.ok(statistics);
+	}
 
-
-
-
+	// 월별 카테고리 통계 조회
+	@GetMapping("api/v1/expenses/category-statistics/{userKey}")
+	public ResponseEntity<CategoryStatisticsDTO> getCategoryStatistics(
+			@PathVariable String userKey, @RequestParam int year, @RequestParam int month) {
+		CategoryStatisticsDTO categoryStatistics = expenseService.getCategoryStatistics(userKey, year, month);
+		return ResponseEntity.ok(categoryStatistics);
+	}
 }
