@@ -141,19 +141,42 @@ public class ExpenseService {
 		Long userId = userService.getUserIdByUserKey(userKey);
 		List<Expense> expenses = expenseRepository.findByUserId(userId);
 
-		Map<Integer, RecordInfoDTO> monthlyRecords = expenses.stream()
-				.filter(exp -> exp.getCreatedAt().getYear() == year)
-				.collect(Collectors.groupingBy(
-						exp -> exp.getCreatedAt().getMonthValue(),
-						Collectors.collectingAndThen(
-								Collectors.toList(),
-								list -> {
-									long recordCount = list.size();
-									int totalDaysInMonth = YearMonth.of(year, list.get(0).getCreatedAt().getMonthValue()).lengthOfMonth();
-									return new RecordInfoDTO(recordCount, totalDaysInMonth);
-								}
-						)
-				));
+		// 일 기준으로 그룹핑
+		Set<LocalDate> dailyCounts = expenses.stream()
+			.filter(exp -> exp.getCreatedAt().getYear() == year)
+			.map(exp -> exp.getCreatedAt().toLocalDate())
+			.collect(Collectors.toSet());
+
+		// 월 기준으로 다시 그룹핑
+		Map<Integer, Long> monthlyCounts = dailyCounts.stream()
+			.collect(Collectors.groupingBy(
+				LocalDate::getMonthValue,
+				Collectors.counting()
+			));
+
+		// RecordInfoDTO 변환
+		Map<Integer, RecordInfoDTO> monthlyRecords = monthlyCounts.entrySet().stream()
+			.collect(Collectors.toMap(
+				Map.Entry::getKey, // 월(MonthValue)
+				entry -> new RecordInfoDTO(
+					entry.getValue(), // 해당 월의 기록이 있는 날짜 수
+					YearMonth.of(year, entry.getKey()).lengthOfMonth() // 해당 월의 총 날짜 수
+				)
+			));
+
+		// Map<Integer, RecordInfoDTO> monthlyRecords = expenses.stream()
+		// 		.filter(exp -> exp.getCreatedAt().getYear() == year)
+		// 		.collect(Collectors.groupingBy(
+		// 				exp -> exp.getCreatedAt().getMonthValue(),
+		// 				Collectors.collectingAndThen(
+		// 						Collectors.toList(),
+		// 						list -> {
+		// 							long recordCount = list.size();
+		// 							int totalDaysInMonth = YearMonth.of(year, list.get(0).getCreatedAt().getMonthValue()).lengthOfMonth();
+		// 							return new RecordInfoDTO(recordCount, totalDaysInMonth);
+		// 						}
+		// 				)
+		// 		));
 
 		return ExpenseSummaryDTO.builder()
 				.year(year)
