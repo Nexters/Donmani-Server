@@ -143,7 +143,8 @@ public class ExpenseService {
 
 		// 일 기준으로 그룹핑
 		Set<LocalDate> dailyCounts = expenses.stream()
-			.map(exp -> exp.getCreatedAt().toLocalDate()) // LocalDate 변환
+			.filter(exp -> exp.getCreatedAt().getYear() == year)
+			.map(exp -> exp.getCreatedAt().toLocalDate())
 			.collect(Collectors.toSet());
 
 		// 월 기준으로 다시 그룹핑
