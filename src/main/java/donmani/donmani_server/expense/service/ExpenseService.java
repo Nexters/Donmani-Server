@@ -12,7 +12,6 @@ import donmani.donmani_server.expense.entity.CategoryType;
 import donmani.donmani_server.expense.entity.FlagType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -215,7 +214,13 @@ public class ExpenseService {
 		Map<CategoryType, Integer> categoryCounts = Arrays.stream(CategoryType.values())
 				.collect(Collectors.toMap(category -> category, category -> 0));
 
-		expenses.forEach(expense -> categoryCounts.put(expense.getCategory(), categoryCounts.get(expense.getCategory()) + 1));
+		expenses.forEach(expense -> {
+			if (expense.getCategory() != null) {
+				categoryCounts.put(
+						expense.getCategory(), categoryCounts.get(expense.getCategory()) + 1);
+			}
+		});
+
 
 		return CategoryStatisticsDTO.builder()
 				.year(year)
