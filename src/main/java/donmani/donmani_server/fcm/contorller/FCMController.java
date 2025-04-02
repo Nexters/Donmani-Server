@@ -18,4 +18,10 @@ public class FCMController {
         fcmService.saveOrUpdateToken(userKey, token);
         return ResponseEntity.ok("SUCCESS"); // TODO : 응답 포맷팅 작업에서 수정 필요
     }
+
+    @PostMapping("/send-messages/{userKey}")
+    public ResponseEntity<String> saveOrUpdateToken(@PathVariable String userKey) {
+        fcmService.sendMessageTest(userKey);
+        return ResponseEntity.ok("SUCCESS"); // TODO : 응답 포맷팅 작업에서 수정 필요
+    }
 }

@@ -46,8 +46,8 @@ jobs:
       - name: Add FCM service account JSON key
         run: |
           cd ./src/main/resources
-          touch ./donmani-5d3f6-firebase-adminsdk-fbsvc-22a01911fd.json
-          echo "${{ secrets.FCM_SERVICE_ACCOUNT_JSON }}" > ./donmani-5d3f6-firebase-adminsdk-fbsvc-22a01911fd.json
+          touch ./bbsofficial-firebase-adminsdk.json
+          echo "${{ secrets.FCM_SERVICE_ACCOUNT_JSON }}" > ./bbsofficial-firebase-adminsdk.json
 
       #test를 제외한 프로젝트 빌드
       - name: Build With Gradle

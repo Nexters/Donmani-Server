@@ -52,7 +52,7 @@ public class FCMService {
                         .setBody(body)
                         .build())
                 .build();
-
+        System.out.println();
         try {
             FirebaseMessaging.getInstance().send(message);
         } catch (FirebaseMessagingException e) {
@@ -60,6 +60,14 @@ public class FCMService {
         }
     }
 
+    public void sendMessageTest(String userKey) {
+        User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
+        FCMToken token = fcmTokenRepository.findByUser(user).orElseThrow();
+
+        String title = "Test Title";
+        String message = "Test Message, User : " + user.getName();
+        sendMessage(token.getToken(), title, message);
+    }
     @Transactional
     public List<String> getTokenNoExpenseToday() {
         return expenseRepository.findTokensWithoutExpenseToday();
