@@ -14,7 +14,7 @@ public class FirebaseConfig {
     @PostConstruct
     public void init() {
         try {
-            InputStream serviceAccount = new ClassPathResource("donmani-5d3f6-firebase-adminsdk-fbsvc-22a01911fd.json").getInputStream();
+            InputStream serviceAccount = new ClassPathResource("bbsofficial-firebase-adminsdk.json").getInputStream();
             FirebaseOptions options = new FirebaseOptions.Builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                     .build();
