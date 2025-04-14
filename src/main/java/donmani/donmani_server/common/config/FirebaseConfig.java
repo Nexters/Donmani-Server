@@ -14,13 +14,21 @@ public class FirebaseConfig {
     @PostConstruct
     public void init() {
         try {
-            InputStream serviceAccount = new ClassPathResource("bbsofficial-firebase-adminsdk.json").getInputStream();
-            FirebaseOptions options = new FirebaseOptions.Builder()
+            InputStream serviceAccount = getClass()
+                    .getClassLoader()
+                    .getResourceAsStream("bbsofficial-firebase-adminsdk.json");
+
+            if (serviceAccount == null) {
+                throw new IllegalStateException("Firebase 인증 JSON 파일을 classpath에서 찾을 수 없습니다.");
+            }
+
+            FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                     .build();
 
             if (FirebaseApp.getApps().isEmpty()) { // FirebaseApp이 이미 초기화되어 있지 않은 경우에만 초기화 실행
                 FirebaseApp.initializeApp(options);
+                System.out.println("Firebase 초기화 완료");
             }
         } catch (Exception e) {
             e.printStackTrace();
