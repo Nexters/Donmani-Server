@@ -31,17 +31,23 @@ public class FCMService {
     public void saveOrUpdateToken(String userKey, String token) {
         User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
+        String removeQuotesToken = removeQuotes(token);
         FCMToken fcmToken = fcmTokenRepository.findByUser(user)
                 .map(existingToken -> {
-                    existingToken.setToken(token);
+                    existingToken.setToken(removeQuotesToken);
                     return existingToken;
                 }).orElseGet(() -> FCMToken.builder()
                         .user(user)
-                        .token(token)
+                        .token(removeQuotesToken)
                         .build()
                 );
 
         fcmTokenRepository.save(fcmToken);
+    }
+
+    private String removeQuotes(String input) {
+        return (input.startsWith("\"") && input.endsWith("\"")) ?
+                input.substring(1, input.length() - 1) : input;
     }
 
     public void sendMessage(String targetToken, String title, String body) {
