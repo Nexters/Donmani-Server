@@ -1,5 +1,6 @@
 package donmani.donmani_server.common.config;
 
+import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 
 import io.swagger.v3.oas.models.Components;
@@ -17,8 +18,11 @@ public class OpenAPIConfig {
 			.title("swagger 테스트")
 			.version("1.0")
 			.description("API에 대한 설명 부분");
+
+		Server server = new Server();
+		server.setUrl("https://www.donmani.kr");
 		return new OpenAPI()
 			.components(new Components())
-			.info(info);
+			.info(info).addServersItem(server);
 	}
 }
