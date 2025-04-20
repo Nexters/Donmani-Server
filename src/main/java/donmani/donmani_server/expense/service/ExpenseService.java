@@ -33,6 +33,7 @@ public class ExpenseService {
 	@Transactional
 	public void addExpense(ExpenseRequestDTO request) {
 		Long userId = userService.getUserIdByUserKey(request.getUserKey());
+		LocalDateTime localDateTime = LocalDateTime.now();
 
 		List<Expense> expenses = request.getRecords().stream()
 			.flatMap(record -> {
@@ -45,6 +46,7 @@ public class ExpenseService {
 					return Stream.of(Expense.builder()
 						.userId(userId)
 						.createdAt(record.getDate().atStartOfDay())
+						.createdDate(localDateTime)
 						.build());
 				}
 
@@ -52,6 +54,7 @@ public class ExpenseService {
 				return contents.stream().map(content -> Expense.builder()
 					.userId(userId)
 					.createdAt(record.getDate().atStartOfDay())
+					.createdDate(localDateTime)
 					.flag(content.getFlag())
 					.category(content.getCategory())
 					.memo(content.getMemo())
