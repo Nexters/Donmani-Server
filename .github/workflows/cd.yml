@@ -43,11 +43,11 @@ jobs:
           echo "${{ secrets.PROPERTIES_PROD }}" > ./application-prod.properties
         shell: bash
 
-      - name: Add FCM service account JSON key
+      - name: Decode and save Firebase service account JSON
         run: |
           cd ./src/main/resources
           touch ./bbsofficial-firebase-adminsdk.json
-          echo "${{ secrets.FCM_SERVICE_ACCOUNT_JSON }}" > ./bbsofficial-firebase-adminsdk.json
+          echo "${{ secrets.FCM_SERVICE_ACCOUNT_JSON }}" | base64 --decode > ./bbsofficial-firebase-adminsdk.json
 
       #test를 제외한 프로젝트 빌드
       - name: Build With Gradle
