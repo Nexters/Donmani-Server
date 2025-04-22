@@ -1,11 +1,14 @@
 package donmani.donmani_server.user.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Optional;
 
 import donmani.donmani_server.expense.dto.NoticeReadDTO;
 import donmani.donmani_server.user.dto.UserRegisterResponseDTO;
 import donmani.donmani_server.user.dto.UpdateUsernameResponseDTO;
-import donmani.donmani_server.user.dto.UserRegisterResponseDTOV2;
+import donmani.donmani_server.user.dto.UserRegisterResponseDTOV1;
 import donmani.donmani_server.user.entity.User;
 import donmani.donmani_server.user.repository.UserRepository;
 
@@ -41,9 +44,11 @@ public class UserService {
 	}
 
 	@Transactional
-	public UserRegisterResponseDTOV2 registerUserV2(String userKey) {
-		UserRegisterResponseDTOV2 response;
+	public UserRegisterResponseDTOV1 registerUserV1(String userKey) {
+		UserRegisterResponseDTOV1 response;
 		Optional<User> user = userRepository.findByUserKey(userKey);
+
+		LocalDateTime localDateTime = LocalDateTime.now();
 
 		// 1. 신규 유저
 		if (user.isEmpty()) {
@@ -53,15 +58,21 @@ public class UserService {
 				.userKey(userKey)
 				.name(randomUsername + "의 별통이")
 				.level(1)
+				.createdDate(localDateTime)
+				.updateDate(localDateTime)
+				.lastLoginDate(localDateTime)
+				.isNoticeEnable(false)
 				.build();
 
 			userRepository.save(newUser);
 
-			response = new UserRegisterResponseDTOV2(true, newUser.getUserKey(), newUser.getName());
+			response = new UserRegisterResponseDTOV1(true, newUser.getUserKey(), newUser.getName());
 		}
 		// 2. 기존 유저
 		else {
-			response = new UserRegisterResponseDTOV2(false, user.get().getUserKey(), user.get().getName());
+			User oldUser = user.get();
+
+			response = new UserRegisterResponseDTOV1(false, oldUser.getUserKey(), oldUser.getName());
 		}
 
 		return response;
@@ -69,39 +80,44 @@ public class UserService {
 
 	@Transactional
 	public UpdateUsernameResponseDTO updateUsername(String userKey, String newUserName) {
+		LocalDateTime localDateTime = LocalDateTime.now();
+
 		User user = userRepository
 			.findByUserKey(userKey)
 			.orElseThrow(() -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다."));
 
 		user.setName(newUserName);
-		userRepository.save(user);
+		user.setUpdateDate(localDateTime);
 
 		UpdateUsernameResponseDTO response = new UpdateUsernameResponseDTO(user.getUserKey(), user.getName());
 
 		return response;
 	}
 
-	@Transactional
+	@Transactional(readOnly = true)
 	public Long getUserIdByUserKey(String userKey) {
 		return userRepository.findByUserKey(userKey)
 			.orElseThrow(() -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다."))
 			.getId();
 	}
 
-	@Transactional
-	public Long getUserIdByUserKeyV2(String userKey) {
+	@Transactional(readOnly = true)
+	public Long getUserIdByUserKeyV1(String userKey) {
 		return userRepository.findByUserKey(userKey)
 			.map(User::getId)
 			.orElse(-1L); // 기본값으로 -1을 리턴
-
 	}
 
 	@Transactional
 	public void markNoticeAsRead(String userKey) {
+		LocalDateTime localDateTime = LocalDateTime.now();
+
 		User user = userRepository.findByUserKey(userKey)
 				.orElseThrow(() -> new IllegalArgumentException("User not found"));
 
 		user.setNoticeRead(true); // 공지사항 읽음 처리
+		user.setUpdateDate(localDateTime);
+
 		userRepository.save(user);
 	}
 
@@ -111,5 +127,29 @@ public class UserService {
 				.orElseThrow(() -> new IllegalArgumentException("User not found"));
 
 		return NoticeReadDTO.builder().read(user.isNoticeRead()).build(); // 읽음 여부 반환
+	}
+
+	@Transactional
+	public void updateUserNoticeEnable(String userKey, boolean isNoticeEnable) {
+		LocalDateTime localDateTime = LocalDateTime.now();
+
+		User user = userRepository
+			.findByUserKey(userKey)
+			.orElseThrow(() -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다."));
+
+		user.setNoticeEnable(isNoticeEnable);
+		user.setUpdateDate(localDateTime);
+	}
+
+	@Transactional
+	public void updateUserLastLoginDate(String userKey) {
+		LocalDateTime localDateTime = LocalDateTime.now();
+
+		User user = userRepository
+			.findByUserKey(userKey)
+			.orElseThrow(() -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다."));
+
+		user.setLastLoginDate(localDateTime);
+		user.setUpdateDate(localDateTime);
 	}
 }

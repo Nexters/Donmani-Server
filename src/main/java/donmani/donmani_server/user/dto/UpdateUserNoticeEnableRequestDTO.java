@@ -2,11 +2,12 @@ package donmani.donmani_server.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 @AllArgsConstructor
-public class UserRegisterResponseDTOV2{
-	private boolean isNew;
+public class UpdateUserNoticeEnableRequestDTO {
 	private String userKey;
-	private String userName;
+	private boolean noticeEnable;
 }

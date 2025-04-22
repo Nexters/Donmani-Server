@@ -2,11 +2,12 @@ package donmani.donmani_server.user.controller;
 
 import donmani.donmani_server.common.httpStatus.HttpStatusDTO;
 import donmani.donmani_server.expense.dto.NoticeReadDTO;
+import donmani.donmani_server.user.dto.UpdateUserNoticeEnableRequestDTO;
 import donmani.donmani_server.user.dto.UpdateUsernameRequestDTO;
 import donmani.donmani_server.user.dto.UpdateUsernameResponseDTO;
 import donmani.donmani_server.user.dto.UserRegisterRequestDTO;
 import donmani.donmani_server.user.dto.UserRegisterResponseDTO;
-import donmani.donmani_server.user.dto.UserRegisterResponseDTOV2;
+import donmani.donmani_server.user.dto.UserRegisterResponseDTOV1;
 import donmani.donmani_server.user.service.UserService;
 
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,7 @@ public class UserController {
 	private final UserService userService;
 
 	@PostMapping("users/register")
-	public ResponseEntity<UserRegisterResponseDTO> registerUserV1(
+	public ResponseEntity<UserRegisterResponseDTO> registerUser(
 		@Valid @RequestBody UserRegisterRequestDTO request) {
 
 		UserRegisterResponseDTO response = userService.registerUser(request.getUserKey());
@@ -31,23 +32,23 @@ public class UserController {
 	}
 
 	@PostMapping("api/v1/user/register")
-	public ResponseEntity<HttpStatusDTO<UserRegisterResponseDTOV2>> registerUserV2(
+	public ResponseEntity<HttpStatusDTO<UserRegisterResponseDTOV1>> registerUserV1(
 		@Valid @RequestBody UserRegisterRequestDTO request) {
 
-		ResponseEntity<HttpStatusDTO<UserRegisterResponseDTOV2>> response;
+		ResponseEntity<HttpStatusDTO<UserRegisterResponseDTOV1>> response;
 
 		// 1. userId
-		long userId = userService.getUserIdByUserKeyV2(request.getUserKey());
+		long userId = userService.getUserIdByUserKeyV1(request.getUserKey());
 
 		// 2.1 신규 유저 -> 201
 		if (userId == -1L) {
-			UserRegisterResponseDTOV2 user = userService.registerUserV2(request.getUserKey());
+			UserRegisterResponseDTOV1 user = userService.registerUserV1(request.getUserKey());
 			response = ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.CREATED.value(), "신규 유저", user));
 		}
 
 		// 2,2 기존 유저 -> 200
 		else {
-			UserRegisterResponseDTOV2 user = userService.registerUserV2(request.getUserKey());
+			UserRegisterResponseDTOV1 user = userService.registerUserV1(request.getUserKey());
 			response = ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.OK.value(), "기존 유저", user));
 		}
 
@@ -55,7 +56,7 @@ public class UserController {
 	}
 
 	@PutMapping("users/update")
-	public ResponseEntity<UpdateUsernameResponseDTO> updateNicknameV1(
+	public ResponseEntity<UpdateUsernameResponseDTO> updateNickname(
 		@Valid @RequestBody UpdateUsernameRequestDTO request) {
 
 		UpdateUsernameResponseDTO response = userService.updateUsername(request.getUserKey(), request.getNewUserName());
@@ -64,7 +65,7 @@ public class UserController {
 	}
 
 	@PostMapping("api/v1/user/update")
-	public ResponseEntity<HttpStatusDTO<UpdateUsernameResponseDTO>> updateNicknameV2(
+	public ResponseEntity<HttpStatusDTO<UpdateUsernameResponseDTO>> updateNicknameV1(
 		@Valid @RequestBody UpdateUsernameRequestDTO request) {
 		try {
 			UpdateUsernameResponseDTO user = userService.updateUsername(request.getUserKey(), request.getNewUserName());
@@ -88,5 +89,35 @@ public class UserController {
 	public ResponseEntity<Void> markNoticeAsRead(@PathVariable String userKey) {
 		userService.markNoticeAsRead(userKey);
 		return ResponseEntity.ok().build();
+	}
+
+	@PutMapping("api/v1/notice/enable/{userKey}")
+	public ResponseEntity<HttpStatusDTO<UpdateUserNoticeEnableRequestDTO>> updateUserNoticeEnableV1(
+		@Valid @RequestBody UpdateUserNoticeEnableRequestDTO request) {
+		try {
+			userService.updateUserNoticeEnable(request.getUserKey(), request.isNoticeEnable());
+
+			// 1. 알림수신동의여부 변경 성공 -> 201
+			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.CREATED.value(), "성공", null));
+		} catch (IllegalArgumentException e) {
+			// 2. 알림수신동의여부 변경 실패 -> 500
+			return ResponseEntity.ok(
+				HttpStatusDTO.response(HttpStatus.INTERNAL_SERVER_ERROR.value(), "유저 정보 없음", null));
+		}
+	}
+
+	@PutMapping("api/v1/user/last-login/{userKey}")
+	public ResponseEntity<HttpStatusDTO<Void>> updateUserLastLoginDateV1(
+		@PathVariable String userKey) {
+		try {
+			userService.updateUserLastLoginDate(userKey);
+
+			// 1. 최종접속일자 변경 성공 -> 201
+			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.CREATED.value(), "성공", null));
+		} catch (IllegalArgumentException e) {
+			// 2. 최종접속일자 변경 실패 -> 500
+			return ResponseEntity.ok(
+				HttpStatusDTO.response(HttpStatus.INTERNAL_SERVER_ERROR.value(), "유저 정보 없음", null));
+		}
 	}
 }
