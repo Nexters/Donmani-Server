@@ -6,8 +6,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -20,7 +20,8 @@ public class WebHookService {
 	private final WebHookRepository webHookRepository;
 	private final WebClient webClient;
 
-	private final String webhookUrl = "https://discord.com/api/webhooks/1363380639302156368/wESM5jCLC2irACyRbhV2LmOrfSVXXaBhlGc_2PLaMvbmeukL5D7-1JA2IjukHuoYMTWY";
+	@Value("${discord.webhook.url}")
+	private String webhookUrl;
 	private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일");
 
 	public void sendDailyUserStatsReport() {
