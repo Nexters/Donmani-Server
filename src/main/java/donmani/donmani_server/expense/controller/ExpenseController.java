@@ -7,16 +7,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import donmani.donmani_server.common.httpStatus.HttpStatusDTO;
 import donmani.donmani_server.expense.service.ExpenseService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,7 +20,7 @@ public class ExpenseController {
 	private final ExpenseService expenseService;
 
 	@GetMapping("expenses/calendar/{userKey}")
-	public ResponseEntity<ExpenseResponseDTO> getExpensesCalendarV1(
+	public ResponseEntity<ExpenseResponseDTO> getExpensesCalendar(
 		@PathVariable String userKey,
 		@RequestParam int year,
 		@RequestParam int month) {
@@ -33,7 +29,7 @@ public class ExpenseController {
 	}
 
 	@GetMapping("api/v1/expenses/calendar/{userKey}")
-	public ResponseEntity<HttpStatusDTO<ExpenseResponseDTO>> getExpensesCalendarV2(
+	public ResponseEntity<HttpStatusDTO<ExpenseResponseDTO>> getExpensesCalendarV1(
 		@PathVariable String userKey,
 		@RequestParam int year,
 		@RequestParam int month) {
@@ -47,7 +43,7 @@ public class ExpenseController {
 	}
 
 	@GetMapping("api/v1/expenses/list/{userKey}")
-	public ResponseEntity<HttpStatusDTO<ExpenseResponseDTO>> getExpensesListV2(
+	public ResponseEntity<HttpStatusDTO<ExpenseResponseDTO>> getExpensesListV1(
 		@PathVariable String userKey,
 		@RequestParam int year,
 		@RequestParam int month) {
@@ -61,7 +57,7 @@ public class ExpenseController {
 	}
 
 	@GetMapping("expenses/list/{userKey}")
-	public ResponseEntity<ExpenseResponseDTO> getExpensesListV1(
+	public ResponseEntity<ExpenseResponseDTO> getExpensesList(
 		@PathVariable String userKey,
 		@RequestParam int year,
 		@RequestParam int month) {
@@ -70,17 +66,22 @@ public class ExpenseController {
 	}
 
 	@PostMapping("expenses")
-	public ResponseEntity<Void> addExpenseV1(@RequestBody ExpenseRequestDTO request) {
+	public ResponseEntity<Void> addExpense(@RequestBody ExpenseRequestDTO request) {
 		expenseService.addExpense(request);
 		return ResponseEntity.ok().build();
 	}
 
 	@PostMapping("api/v1/expenses")
-	public ResponseEntity<HttpStatusDTO<Void>> addExpenseV2(@RequestBody ExpenseRequestDTO request) {
-		expenseService.addExpense(request);
+	public ResponseEntity<HttpStatusDTO<Void>> addExpenseV1(@RequestBody ExpenseRequestDTO request) {
+		try {
+			expenseService.addExpense(request);
 
-		return ResponseEntity.ok(
-			HttpStatusDTO.response(HttpStatus.CREATED.value(), "성공", null));
+			// 1. 소비 기록 성공 -> 201
+			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.CREATED.value(), "성공", null));
+		} catch (Exception e) {
+			// 2. 소비 기록 실패 -> 500
+			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.INTERNAL_SERVER_ERROR.value(), "유저 정보 없음", null));
+		}
 	}
 
 	// 연도별 소비 기록 요약 조회

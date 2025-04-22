@@ -1,5 +1,7 @@
 package donmani.donmani_server.user.entity;
 
+import java.time.LocalDateTime;
+
 import donmani.donmani_server.fcm.entity.FCMToken;
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,6 +29,18 @@ public class User {
 	private FCMToken fcmToken;
 
 	private boolean isNoticeRead;
+
+	/*
+	 - 2025.04.16
+	 - 생성일자, 최종변경일자, 최종접속일자, 알림수신여부 칼럼 추가
+	*/
+	private LocalDateTime createdDate;
+
+	private LocalDateTime updateDate;
+
+	private LocalDateTime lastLoginDate;
+
+	private boolean isNoticeEnable;
 
 	public static String generateRandomUsername() {
 		String[] adjectives = {"기쁜", "활발한", "멋있는", "즐거운", "당황한", "설레는", "귀여운", "뿌듯한", "시원한", "황홀한"};
