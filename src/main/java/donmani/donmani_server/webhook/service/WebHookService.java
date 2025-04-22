@@ -34,25 +34,25 @@ public class WebHookService {
 		String formattedYesterday = yesterday.format(formatter);
 
 		// 1. 오늘 앱 설치 수 (신규 가입)
-		long todayNewUserCount = webHookRepository.countNewUsersOnDate(yesterday, endOfYesterday);
+		Integer todayNewUserCount = webHookRepository.countNewUsersOnDate(yesterday, endOfYesterday);
 
 		// 2. 누적 앱 설치 수
-		long totalUserCountUntilYesterday = webHookRepository.countAllUsersBefore(yesterday);
+		Integer totalUserCountUntilYesterday = webHookRepository.countAllUsersBefore(yesterday);
 
 		// 3. 오늘 서비스 진입 수
-		long todayLoginUserCount = webHookRepository.countLoginUsersOnDate(yesterday, endOfYesterday);
+		Integer todayLoginUserCount = webHookRepository.countLoginUsersOnDate(yesterday, endOfYesterday);
 
 		// 4. 오늘 기록 완료 수
-		long todaySubmittedUserCount = webHookRepository.countExpenseSubmittersOnDate(yesterday, endOfYesterday);
+		Integer todaySubmittedUserCount = webHookRepository.countExpenseSubmittersOnDate(yesterday, endOfYesterday);
 
 		// 5. 알림 수신 동의 여부 수
-		long notificationOptInUserCount = webHookRepository.countByNoticeEnableTrueUser();
+		Integer notificationOptInUserCount = webHookRepository.countByNoticeEnableTrueUser();
 
 		// 6. 2일 연속 기록 작성 수
-		long twoDayStreakUserCount = webHookRepository.countUsersWithStreak(2);
+		Integer twoDayStreakUserCount = webHookRepository.countUsersWithStreak(2);
 
 		// 7. 3일 연속 기록 작성 수
-		long threeDayStreakUserCount = webHookRepository.countUsersWithStreak(3);
+		Integer threeDayStreakUserCount = webHookRepository.countUsersWithStreak(3);
 
 		sendToDiscord(formattedToday
 			, formattedYesterday
@@ -67,13 +67,13 @@ public class WebHookService {
 
 	private void sendToDiscord(String today
 		, String yesterday
-		, long newUsers
-		, long allUsers
-		, long todayLoginUsers
-		, long todaySubmitExpenseUsers
-		, long noticeEnableTrueUsers
-		, long twoDayStreakUserCount
-		, long threeDayStreakUserCount) {
+		, Integer newUsers
+		, Integer allUsers
+		, Integer todayLoginUsers
+		, Integer todaySubmitExpenseUsers
+		, Integer noticeEnableTrueUsers
+		, Integer twoDayStreakUserCount
+		, Integer threeDayStreakUserCount) {
 		String message = "기준일 : " + yesterday + "\n\n"
 			           + "1️⃣  오늘 앱 설치 수 -> [" + newUsers + "]\n\n"
 			           + "2️⃣  누적 앱 설치 수 -> [" + allUsers + "]\n\n"
