@@ -7,20 +7,20 @@ import java.time.LocalDateTime;
 
 public interface WebHookRepository extends JpaRepository<User, Long> {
 	@Query("SELECT COUNT(u) FROM User u WHERE u.createdDate BETWEEN :start AND :end")
-	long countNewUsersOnDate(LocalDateTime start, LocalDateTime end);
+	Integer countNewUsersOnDate(LocalDateTime start, LocalDateTime end);
 
 	@Query("SELECT COUNT(u) FROM User u WHERE u.createdDate <= :end or u.createdDate is null")
-	long countAllUsersBefore(LocalDateTime end);
+	Integer countAllUsersBefore(LocalDateTime end);
 
 	@Query("SELECT COUNT(u) FROM User u WHERE u.lastLoginDate BETWEEN :start AND :end")
-	long countLoginUsersOnDate(LocalDateTime start, LocalDateTime end);
+	Integer countLoginUsersOnDate(LocalDateTime start, LocalDateTime end);
 
 	@Query("SELECT COUNT(e) FROM Expense e WHERE e.createdDate BETWEEN :start AND :end group by e.userId")
-	long countExpenseSubmittersOnDate(LocalDateTime start, LocalDateTime end);
+	Integer countExpenseSubmittersOnDate(LocalDateTime start, LocalDateTime end);
 
 	// @Query("SELECT COUNT(e) FROM User e WHERE e.isNoticeEnable = TRUE")
 	@Query("SELECT COUNT(f) FROM FCMToken f")
-	long countByNoticeEnableTrueUser();
+	Integer countByNoticeEnableTrueUser();
 
 	@Query(value =
 		      "SELECT COUNT(*)\n"
@@ -39,5 +39,5 @@ public interface WebHookRepository extends JpaRepository<User, Long> {
 			+ "  HAVING COUNT(*) >= :day) b\n"
 			+ "GROUP BY user_id",
 		   nativeQuery = true)
-	long countUsersWithStreak(int day);
+	Integer countUsersWithStreak(int day);
 }
