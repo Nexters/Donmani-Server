@@ -1,8 +1,6 @@
 package donmani.donmani_server.fcm.service;
 
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseToken;
+
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
@@ -16,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.FileInputStream;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -81,7 +79,7 @@ public class FCMService {
 
     @Transactional
     public List<String> getTokenNoExpenseYesterday() {
-        return expenseRepository.findTokensWithoutExpenseYesterday();
+        return expenseRepository.findTokensWithoutExpenseSince(LocalDateTime.now().minusDays(1));
     }
 
 }
