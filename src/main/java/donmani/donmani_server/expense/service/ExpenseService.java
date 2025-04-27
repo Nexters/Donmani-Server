@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import donmani.donmani_server.expense.dto.*;
@@ -156,29 +157,19 @@ public class ExpenseService {
 				Collectors.counting()
 			));
 
-		// RecordInfoDTO 변환
-		Map<Integer, RecordInfoDTO> monthlyRecords = monthlyCounts.entrySet().stream()
-			.collect(Collectors.toMap(
-				Map.Entry::getKey, // 월(MonthValue)
-				entry -> new RecordInfoDTO(
-					entry.getValue(), // 해당 월의 기록이 있는 날짜 수
-					YearMonth.of(year, entry.getKey()).lengthOfMonth() // 해당 월의 총 날짜 수
-				)
-			));
+		// 현재 월 계산
+		int currentMonth = (year == LocalDate.now().getYear()) ? LocalDate.now().getMonthValue() : 12;
 
-		// Map<Integer, RecordInfoDTO> monthlyRecords = expenses.stream()
-		// 		.filter(exp -> exp.getCreatedAt().getYear() == year)
-		// 		.collect(Collectors.groupingBy(
-		// 				exp -> exp.getCreatedAt().getMonthValue(),
-		// 				Collectors.collectingAndThen(
-		// 						Collectors.toList(),
-		// 						list -> {
-		// 							long recordCount = list.size();
-		// 							int totalDaysInMonth = YearMonth.of(year, list.get(0).getCreatedAt().getMonthValue()).lengthOfMonth();
-		// 							return new RecordInfoDTO(recordCount, totalDaysInMonth);
-		// 						}
-		// 				)
-		// 		));
+		// RecordInfoDTO 변환 : 1월부터 현재 월까지 반복
+		Map<Integer, RecordInfoDTO> monthlyRecords = IntStream.rangeClosed(1, currentMonth)
+				.boxed()
+				.collect(Collectors.toMap(
+						month -> month,
+						month -> new RecordInfoDTO(
+								monthlyCounts.getOrDefault(month, 0L),
+								YearMonth.of(year, month).lengthOfMonth()
+						)
+				));
 
 		return ExpenseSummaryDTO.builder()
 				.year(year)
