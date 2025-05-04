@@ -2,6 +2,7 @@ package donmani.donmani_server.user.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.Optional;
 
@@ -48,7 +49,7 @@ public class UserService {
 		UserRegisterResponseDTOV1 response;
 		Optional<User> user = userRepository.findByUserKey(userKey);
 
-		LocalDateTime localDateTime = LocalDateTime.now();
+		LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
 		// 1. 신규 유저
 		if (user.isEmpty()) {
@@ -80,7 +81,7 @@ public class UserService {
 
 	@Transactional
 	public UpdateUsernameResponseDTO updateUsername(String userKey, String newUserName) {
-		LocalDateTime localDateTime = LocalDateTime.now();
+		LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
 		User user = userRepository
 			.findByUserKey(userKey)
@@ -110,7 +111,7 @@ public class UserService {
 
 	@Transactional
 	public void markNoticeAsRead(String userKey) {
-		LocalDateTime localDateTime = LocalDateTime.now();
+		LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
 		User user = userRepository.findByUserKey(userKey)
 				.orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -131,7 +132,7 @@ public class UserService {
 
 	@Transactional
 	public void updateUserNoticeEnable(String userKey, boolean isNoticeEnable) {
-		LocalDateTime localDateTime = LocalDateTime.now();
+		LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
 		User user = userRepository
 			.findByUserKey(userKey)
@@ -143,7 +144,7 @@ public class UserService {
 
 	@Transactional
 	public void updateUserLastLoginDate(String userKey) {
-		LocalDateTime localDateTime = LocalDateTime.now();
+		LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
 		User user = userRepository
 			.findByUserKey(userKey)

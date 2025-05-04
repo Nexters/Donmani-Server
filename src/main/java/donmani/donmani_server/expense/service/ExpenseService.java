@@ -3,6 +3,7 @@ package donmani.donmani_server.expense.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -34,7 +35,7 @@ public class ExpenseService {
 	@Transactional
 	public void addExpense(ExpenseRequestDTO request) {
 		Long userId = userService.getUserIdByUserKey(request.getUserKey());
-		LocalDateTime localDateTime = LocalDateTime.now();
+		LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
 		List<Expense> expenses = request.getRecords().stream()
 			.flatMap(record -> {
