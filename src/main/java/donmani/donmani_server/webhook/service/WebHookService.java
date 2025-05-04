@@ -2,6 +2,7 @@ package donmani.donmani_server.webhook.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +26,7 @@ public class WebHookService {
 	private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일");
 
 	public void sendDailyUserStatsReport() {
-		LocalDate today = LocalDate.now();
+		LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
 		LocalDateTime yesterday      = today.atStartOfDay().minusDays(1);
 		LocalDateTime endOfYesterday = today.atStartOfDay().minusNanos(1);
