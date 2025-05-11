@@ -37,12 +37,12 @@ public interface WebHookRepository extends JpaRepository<User, Long> {
 		+ "      FROM (\n"
 		+ "            SELECT e.user_id, e.created_date\n"
 		+ "            FROM Expense e\n"
-		+ "            WHERE DATE_FORMAT(e.created_date, '%Y%m%d') BETWEEN curdate() - (:day - 1) AND CURDATE()\n"
+		+ "            WHERE DATE_FORMAT(e.created_date, '%Y%m%d') BETWEEN DATE_FORMAT(:date, '%Y%m%d') - INTERVAL :day DAY AND DATE_FORMAT(:date, '%Y%m%d')\n"
 		+ "            GROUP BY e.user_id, e.created_date\n"
 		+ "            ) a\n"
 		+ "      GROUP BY a.user_id\n"
-		+ "      HAVING COUNT(*) = :day\n"
+		+ "      HAVING COUNT(*) = :day + 1\n"
 		+ "      ) b"
 		, nativeQuery = true)
-	Integer countUsersWithStreak(int day);
+	Integer countUsersWithStreak(LocalDateTime date, int day);
 }

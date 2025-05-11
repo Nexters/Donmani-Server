@@ -49,10 +49,10 @@ public class WebHookService {
 		Integer notificationOptInUserCount = webHookRepository.countByNoticeEnableTrueUser();
 
 		// 6. 2일 연속 기록 작성 수
-		Integer twoDayStreakUserCount = webHookRepository.countUsersWithStreak(2);
+		Integer twoDayStreakUserCount = webHookRepository.countUsersWithStreak(yesterday, 1);
 
 		// 7. 3일 연속 기록 작성 수
-		Integer threeDayStreakUserCount = webHookRepository.countUsersWithStreak(3);
+		Integer threeDayStreakUserCount = webHookRepository.countUsersWithStreak(yesterday, 2);
 
 		sendToDiscord(formattedToday
 			, formattedYesterday
