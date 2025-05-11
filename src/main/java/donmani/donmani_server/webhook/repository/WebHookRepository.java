@@ -6,38 +6,43 @@ import org.springframework.data.jpa.repository.Query;
 import java.time.LocalDateTime;
 
 public interface WebHookRepository extends JpaRepository<User, Long> {
-	@Query("SELECT COUNT(u) FROM User u WHERE u.createdDate BETWEEN :start AND :end")
-	Integer countNewUsersOnDate(LocalDateTime start, LocalDateTime end);
+	@Query("SELECT COUNT(*) FROM User u WHERE DATE_FORMAT(u.createdDate, '%Y%m%d') = DATE_FORMAT(:date, '%Y%m%d')")
+	Integer countNewUsersOnDate(LocalDateTime date);
 
-	@Query("SELECT COUNT(u) FROM User u WHERE u.createdDate <= :end or u.createdDate is null")
-	Integer countAllUsersBefore(LocalDateTime end);
+	@Query("SELECT COUNT(*) FROM User u WHERE DATE_FORMAT(u.createdDate, '%Y%m%d') <= DATE_FORMAT(:date, '%Y%m%d') or u.createdDate is null")
+	Integer countAllUsersBefore(LocalDateTime date);
 
-	@Query("SELECT COUNT(u) FROM User u WHERE u.lastLoginDate BETWEEN :start AND :end")
-	Integer countLoginUsersOnDate(LocalDateTime start, LocalDateTime end);
+	@Query("SELECT COUNT(*) FROM User u WHERE DATE_FORMAT(u.lastLoginDate, '%Y%m%d') = DATE_FORMAT(:date, '%Y%m%d')")
+	Integer countLoginUsersOnDate(LocalDateTime date);
 
-	@Query("SELECT COUNT(e) FROM Expense e WHERE e.createdDate BETWEEN :start AND :end group by e.userId")
-	Integer countExpenseSubmittersOnDate(LocalDateTime start, LocalDateTime end);
+	@Query(value =
+		  "SELECT COUNT(*)\n"
+		+ "FROM (\n"
+		+ "      SELECT COUNT(*)\n"
+		+ "      FROM Expense e\n"
+		+ "      WHERE DATE_FORMAT(e.created_date, '%Y%m%d') = DATE_FORMAT(:date, '%Y%m%d')\n"
+		+ "      GROUP BY e.user_id\n"
+		+ "      ) a"
+		, nativeQuery = true)
+	Integer countExpenseSubmittersOnDate(LocalDateTime date);
 
 	// @Query("SELECT COUNT(e) FROM User e WHERE e.isNoticeEnable = TRUE")
-	@Query("SELECT COUNT(f) FROM FCMToken f")
+	@Query("SELECT COUNT(*) FROM FCMToken f")
 	Integer countByNoticeEnableTrueUser();
 
 	@Query(value =
-		      "SELECT COUNT(*)\n"
-			+ "FROM (\n"
-			+ "  SELECT user_id\n"
-			+ "  FROM (\n"
-			+ "    SELECT \n"
-			+ "      user_id,\n"
-			+ "      DATE(created_date) AS log_date,\n"
-			+ "      ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY DATE(created_date)) \n"
-			+ "        - DENSE_RANK() OVER (PARTITION BY user_id ORDER BY DATE(created_date)) AS grp\n"
-			+ "    FROM expense\n"
-			+ "    GROUP BY user_id, DATE(created_date)\n"
-			+ "  ) a\n"
-			+ "  GROUP BY user_id, grp\n"
-			+ "  HAVING COUNT(*) >= :day) b\n"
-			+ "GROUP BY user_id",
-		   nativeQuery = true)
+		  "SELECT COUNT(*)\n"
+		+ "FROM (\n"
+		+ "      SELECT COUNT(*)\n"
+		+ "      FROM (\n"
+		+ "            SELECT e.user_id, e.created_date\n"
+		+ "            FROM Expense e\n"
+		+ "            WHERE DATE_FORMAT(e.created_date, '%Y%m%d') BETWEEN curdate() - (:day - 1) AND CURDATE()\n"
+		+ "            GROUP BY e.user_id, e.created_date\n"
+		+ "            ) a\n"
+		+ "      GROUP BY a.user_id\n"
+		+ "      HAVING COUNT(*) = :day\n"
+		+ "      ) b"
+		, nativeQuery = true)
 	Integer countUsersWithStreak(int day);
 }

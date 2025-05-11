@@ -29,22 +29,21 @@ public class WebHookService {
 		LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
 		LocalDateTime yesterday      = today.atStartOfDay().minusDays(1);
-		LocalDateTime endOfYesterday = today.atStartOfDay().minusNanos(1);
 
 		String formattedToday = today.format(formatter);
 		String formattedYesterday = yesterday.format(formatter);
 
 		// 1. 오늘 앱 설치 수 (신규 가입)
-		Integer todayNewUserCount = webHookRepository.countNewUsersOnDate(yesterday, endOfYesterday);
+		Integer todayNewUserCount = webHookRepository.countNewUsersOnDate(yesterday);
 
 		// 2. 누적 앱 설치 수
 		Integer totalUserCountUntilYesterday = webHookRepository.countAllUsersBefore(yesterday);
 
 		// 3. 오늘 서비스 진입 수
-		Integer todayLoginUserCount = webHookRepository.countLoginUsersOnDate(yesterday, endOfYesterday);
+		Integer todayLoginUserCount = webHookRepository.countLoginUsersOnDate(yesterday);
 
 		// 4. 오늘 기록 완료 수
-		Integer todaySubmittedUserCount = webHookRepository.countExpenseSubmittersOnDate(yesterday, endOfYesterday);
+		Integer todaySubmittedUserCount = webHookRepository.countExpenseSubmittersOnDate(yesterday);
 
 		// 5. 알림 수신 동의 여부 수
 		Integer notificationOptInUserCount = webHookRepository.countByNoticeEnableTrueUser();
