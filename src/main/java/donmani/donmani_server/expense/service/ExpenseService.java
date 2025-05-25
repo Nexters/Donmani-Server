@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 import donmani.donmani_server.expense.dto.*;
 import donmani.donmani_server.expense.entity.CategoryType;
 import donmani.donmani_server.expense.entity.FlagType;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import donmani.donmani_server.expense.entity.Expense;
 import donmani.donmani_server.expense.repository.ExpenseRepository;
+import donmani.donmani_server.user.entity.User;
 import donmani.donmani_server.user.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +51,7 @@ public class ExpenseService {
 						.userId(userId)
 						.createdAt(record.getDate().atStartOfDay())
 						.createdDate(localDateTime)
+						.updateDate(localDateTime)
 						.build());
 				}
 
@@ -57,6 +60,7 @@ public class ExpenseService {
 					.userId(userId)
 					.createdAt(record.getDate().atStartOfDay())
 					.createdDate(localDateTime)
+					.updateDate(localDateTime)
 					.flag(content.getFlag())
 					.category(content.getCategory())
 					.memo(content.getMemo())
@@ -224,4 +228,32 @@ public class ExpenseService {
 				.build();
 	}
 
+	@Transactional(readOnly = true)
+	public Expense getExpenseSubmitToday(Long userId, LocalDateTime date) {
+		Expense expense = expenseRepository.findExpenseByUserIdAndAndCreatedAt(userId, date);
+
+		return expense;
+	}
+
+	public Integer getTotalExpensesCount(String userKey) {
+		// 1. 유저 정보 확인
+		User user = userService.getUser(userKey);
+
+		// 오늘 기록된 소비 확인
+		// ver 2.0.0 이후로 기록된 소비만
+		LocalDateTime baseTime = LocalDateTime.of(2025, 5, 23, 0, 0);  // 2025-05-30 00:00
+
+		List<LocalDateTime> createdAts = expenseRepository.findTotalExpensesCount(user.getId());
+
+		createdAts
+			.stream()
+			.filter(createdAt -> createdAt.isEqual(baseTime) || createdAt.isAfter(baseTime))
+			.collect(Collectors.toList());
+
+		return createdAts == null || createdAts.isEmpty() ? 0 : createdAts.size();
+	}
+
+	public Expense getExpense(Long id) {
+		return expenseRepository.findExpenseById(id);
+	}
 }
