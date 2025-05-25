@@ -241,7 +241,7 @@ public class ExpenseService {
 
 		// 오늘 기록된 소비 확인
 		// ver 2.0.0 이후로 기록된 소비만
-		LocalDateTime baseTime = LocalDateTime.of(2025, 5, 23, 0, 0);  // 2025-05-30 00:00
+		LocalDateTime baseTime = LocalDateTime.of(2025, 5, 26, 0, 0);  // 2025-05-30 00:00
 
 		List<LocalDateTime> createdAts = expenseRepository.findTotalExpensesCount(user.getId());
 
