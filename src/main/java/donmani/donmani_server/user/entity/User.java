@@ -1,8 +1,12 @@
 package donmani.donmani_server.user.entity;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import donmani.donmani_server.fcm.entity.FCMToken;
+import donmani.donmani_server.feedback.entity.Feedback;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -41,6 +45,17 @@ public class User {
 	private LocalDateTime lastLoginDate;
 
 	private boolean isNoticeEnable;
+
+	/*
+	 - 2025.05.25
+	 - feedback 양방향 연관 관계 추가
+	 - 피드백 알림 확인 여부 추가
+	*/
+	@OneToMany(mappedBy = "user")
+	@JsonManagedReference
+	private List<Feedback> feedbacks;
+
+	private boolean isFeedbackReceivedNoticeRead;
 
 	public static String generateRandomUsername() {
 		String[] adjectives = {"기쁜", "활발한", "멋있는", "즐거운", "당황한", "설레는", "귀여운", "뿌듯한", "시원한", "황홀한"};
