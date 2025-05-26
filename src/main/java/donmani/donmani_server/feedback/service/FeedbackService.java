@@ -65,27 +65,20 @@ public class FeedbackService {
 		}
 	}
 
-	public Boolean getNotOpenedFeedback(String userKey) {
-		LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+	public Boolean isNotOpenedFeedback(String userKey) {
+		// LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
 		// 1. 유저 정보 확인
 		User user = userService.getUser(userKey);
 
-		// 2. 열지 않은 피드백 확인
 		// List<Feedback> feedbacks = feedbackRepository.findFeedbackByUserIdAndCreatedAt(user.getId(), localDateTime);
 
-		List<Feedback> feedbacks = feedbackRepository.findFeedbackByUserIdAndCreatedDate(user.getId(), localDateTime);
+		// 2. 열지 않은 피드백 확인
+		//  - 최근 생성된 피드백부터 내림차순으로 정렬
+		List<Feedback> feedbacks = feedbackRepository.findFeedbackByUserIdOrderByCreatedDateDesc(user.getId());
 
-		if (feedbacks == null || feedbacks.isEmpty()) {
+		if (feedbacks == null || feedbacks.isEmpty() || feedbacks.get(0).isOpened()) {
 			return false;
-		} else {
-			for (Feedback feedback : feedbacks) {
-				if (feedback.isOpened()) {
-					return false;
-				}
-
-				break;
-			}
 		}
 
 		return true;
@@ -107,18 +100,14 @@ public class FeedbackService {
 		User user = userService.getUser(userKey);
 
 		// 1. 열지 않은 피드백 확인
-		List<Feedback> feedbacks = feedbackRepository.findFeedbackByUserIdAndCreatedDate(user.getId(), localDateTime);
+		//  - 최근 생성된 피드백부터 내림차순으로 정렬
+		List<Feedback> feedbacks = feedbackRepository.findFeedbackByUserIdOrderByCreatedDateDesc(user.getId());
 
-		Feedback notOpenedFeedback = new Feedback();
-
-		for (Feedback feedback : feedbacks) {
-			if (feedback.isOpened()) {
-				throw new EntityNotFoundException("모든 피드백을 열었습니다.");
-			}
-
-			notOpenedFeedback = feedback;
-			break;
+		if (feedbacks == null || feedbacks.isEmpty() || feedbacks.get(0).isOpened()) {
+			throw new EntityNotFoundException("모든 피드백을 열었습니다.");
 		}
+
+		Feedback notOpenedFeedback = feedbacks.get(0);
 
 		// 2. 피드백에 해당하는 기록 확인
 		// Expense expense = expenseService.getExpense(notOpenedFeedback.getId());
