@@ -11,7 +11,6 @@ import donmani.donmani_server.common.httpStatus.HttpStatusDTO;
 import donmani.donmani_server.expense.service.ExpenseService;
 import donmani.donmani_server.feedback.dto.FeedbackNotOpenedResponseDTO;
 import donmani.donmani_server.feedback.dto.FeedbackOpenResponseDTO;
-import donmani.donmani_server.feedback.entity.Feedback;
 import donmani.donmani_server.feedback.service.FeedbackService;
 
 import jakarta.validation.Valid;
@@ -26,13 +25,15 @@ public class FeedbackController {
 	@GetMapping("api/v1/feedback/{userKey}")
 	public ResponseEntity<HttpStatusDTO<FeedbackNotOpenedResponseDTO>> getNotOpenedFeedbackV1(@Valid @PathVariable String userKey) {
 		try {
-			Boolean isNotOpened = feedbackService.getNotOpenedFeedback(userKey);
+			// 1. 아직 열지 않은 피드백이 하나라도 있으면 true, 모든 피드백을 열었으면 false
+			//  - 최근 생성된 피드백부터 내림차순으로 정렬
+			Boolean isNotOpened = feedbackService.isNotOpenedFeedback(userKey);
+
+			// 2. 피드백을 처음 여는 상황이면 true, 이미 열은 피드백이 하나라도 있으면 false
+			//  - 최근 생성된 피드백부터 내림차순으로 정렬
 			Boolean isFirstOpened = feedbackService.isFirstOpenedFeedback(userKey);
 
-			if (!isNotOpened && isFirstOpened) {
-				isFirstOpened = false;
-			}
-
+			// 3. ver 2.0.0 이후로 기록된 소비 확인
 			Integer totalCount = expenseService.getTotalExpensesCount(userKey);
 
 			FeedbackNotOpenedResponseDTO feedbackNotOpenedResponseDTO = new FeedbackNotOpenedResponseDTO(isNotOpened, isFirstOpened, totalCount);
