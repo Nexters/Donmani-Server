@@ -1,4 +1,4 @@
-package donmani.donmani_server.feedback.entity;
+package donmani.donmani_server.feedback.provider;
 
 import java.util.HashMap;
 import java.util.List;
