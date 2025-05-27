@@ -1,9 +1,7 @@
 package donmani.donmani_server.user.service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
 import java.util.Optional;
 
 import donmani.donmani_server.expense.dto.NoticeReadDTO;
@@ -152,5 +150,13 @@ public class UserService {
 
 		user.setLastLoginDate(localDateTime);
 		user.setUpdateDate(localDateTime);
+	}
+
+	public User getUser(String userKey) {
+		User user = userRepository
+			.findByUserKey(userKey)
+			.orElseThrow(() -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다."));
+
+		return user;
 	}
 }

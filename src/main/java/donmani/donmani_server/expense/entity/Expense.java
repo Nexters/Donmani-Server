@@ -1,8 +1,11 @@
 package donmani.donmani_server.expense.entity;
 
+import donmani.donmani_server.feedback.entity.Feedback;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Getter
@@ -34,4 +37,12 @@ public class Expense {
 	*/
 	private LocalDateTime createdDate; // 서버에 기록된 일자
 	private LocalDateTime updateDate;
+
+	/*
+	 - 2025.05.25
+	 - feedback 양방향 연관 관계 추가
+	*/
+	@OneToOne(mappedBy = "expense")
+	@JsonManagedReference
+	private Feedback feedback;
 }
