@@ -1,6 +1,7 @@
 package donmani.donmani_server.feedback.dto;
 
 import donmani.donmani_server.expense.entity.CategoryType;
+import donmani.donmani_server.feedback.entity.Feedback;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
