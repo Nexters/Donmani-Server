@@ -1,6 +1,7 @@
 package donmani.donmani_server.reward.controller;
 
 import donmani.donmani_server.common.httpStatus.HttpStatusDTO;
+import donmani.donmani_server.reward.dto.HiddenUpdateRequestDTO;
 import donmani.donmani_server.reward.dto.RewardItemResponseDTO;
 import donmani.donmani_server.reward.dto.RewardItemSaveRequestDTO;
 import donmani.donmani_server.reward.entity.RewardCategory;
@@ -52,7 +53,7 @@ public class RewardController {
     /***
      * 꾸미기 저장
      */
-    @PutMapping("/{userKey}")
+    @PutMapping("")
     public ResponseEntity<HttpStatusDTO> saveItem(@RequestBody RewardItemSaveRequestDTO request) {
         try {
             rewardService.saveItem(request);
@@ -68,8 +69,13 @@ public class RewardController {
      */
     @GetMapping("/{userKey}")
     public ResponseEntity<HttpStatusDTO<List<RewardItemResponseDTO>>> getSavedItem(
-            @PathVariable String userKey, @RequestParam int year, @RequestParam int month
-    ) {
+            @PathVariable String userKey, @RequestParam int year, @RequestParam int month) {
         return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.OK.value(), "성공", rewardService.getSavedItem(userKey, year, month)));
+    }
+
+    @PutMapping("/hidden-read")
+    public ResponseEntity<HttpStatusDTO> updateHiddenRead(@RequestBody HiddenUpdateRequestDTO request) {
+        rewardService.updateHiddenRead(request);
+        return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.OK.value(), "성공", null));
     }
 }

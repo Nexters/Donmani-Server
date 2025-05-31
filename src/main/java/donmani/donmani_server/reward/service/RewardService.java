@@ -2,6 +2,7 @@ package donmani.donmani_server.reward.service;
 
 import donmani.donmani_server.feedback.entity.Feedback;
 import donmani.donmani_server.feedback.repository.FeedbackRepository;
+import donmani.donmani_server.reward.dto.HiddenUpdateRequestDTO;
 import donmani.donmani_server.reward.dto.RewardItemResponseDTO;
 import donmani.donmani_server.reward.dto.RewardItemSaveRequestDTO;
 import donmani.donmani_server.reward.entity.RewardCategory;
@@ -196,6 +197,17 @@ public class RewardService {
 
         return dtos.stream()
                 .collect(Collectors.groupingBy(RewardItemResponseDTO::getCategory));
+    }
+
+    @Transactional
+    public void updateHiddenRead(HiddenUpdateRequestDTO request) {
+        User user = userRepository.findByUserKey(request.getUserKey()).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
+
+        UserItem findItem = userItemRepository.findOneUnopenedHiddenItem(user, request.getYear(), request.getMonth()).orElseThrow();
+
+        findItem.setOpened(true);
+
+        userItemRepository.save(findItem);
     }
 
     /**
