@@ -148,8 +148,8 @@ public class FeedbackService {
 
 		notOpenedFeedback.setTitle(remainTemplate.getTitle());
 		notOpenedFeedback.setContent(remainTemplate.getContent());
-		notOpenedFeedback.setOpened(true);
-		notOpenedFeedback.setUpdateDate(localDateTime);
+		// notOpenedFeedback.setOpened(true);
+		// notOpenedFeedback.setUpdateDate(localDateTime);
 
 		feedbackRepository.save(notOpenedFeedback);
 
@@ -159,6 +159,25 @@ public class FeedbackService {
 			notOpenedFeedback.getUser().getName(),
 			notOpenedFeedback.getExpense().getCategory(),
 			isToday);
+
+		return response;
+	}
+
+	@Transactional(readOnly = true)
+	public FeedbackOpenResponseDTO getNotOpenedFeedbackContent(String userKey) {
+		LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+		User user = userService.getUser(userKey);
+		Feedback notOpenedFeedback = feedbackRepository.findFirstByUserAndIsOpenedFalseOrderByCreatedDateDesc(user).orElseThrow();
+
+		Boolean isToday = notOpenedFeedback.getExpense().getCreatedAt().format(formatter).equals(localDateTime.format(formatter));
+		FeedbackOpenResponseDTO response = new FeedbackOpenResponseDTO(
+				notOpenedFeedback.getTitle(),
+				notOpenedFeedback.getContent(),
+				notOpenedFeedback.getUser().getName(),
+				notOpenedFeedback.getExpense().getCategory(),
+				isToday);
 
 		return response;
 	}

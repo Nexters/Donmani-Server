@@ -46,6 +46,7 @@ public class User {
 
 	private boolean isNoticeEnable;
 
+	private boolean isRewardChecked;
 	/*
 	 - 2025.05.25
 	 - feedback 양방향 연관 관계 추가

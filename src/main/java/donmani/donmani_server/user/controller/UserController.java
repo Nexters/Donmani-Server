@@ -2,6 +2,7 @@ package donmani.donmani_server.user.controller;
 
 import donmani.donmani_server.common.httpStatus.HttpStatusDTO;
 import donmani.donmani_server.expense.dto.NoticeReadDTO;
+import donmani.donmani_server.reward.dto.RewardCheckDTO;
 import donmani.donmani_server.user.dto.UpdateUserNoticeEnableRequestDTO;
 import donmani.donmani_server.user.dto.UpdateUsernameRequestDTO;
 import donmani.donmani_server.user.dto.UpdateUsernameResponseDTO;
@@ -119,5 +120,17 @@ public class UserController {
 			return ResponseEntity.ok(
 				HttpStatusDTO.response(HttpStatus.INTERNAL_SERVER_ERROR.value(), "유저 정보 없음", null));
 		}
+	}
+
+	@GetMapping("api/v1/reward/status/{userKey}")
+	public ResponseEntity<RewardCheckDTO> getRewardCheckedStatus(@PathVariable String userKey) {
+		RewardCheckDTO rewardStatus = userService.getRewardCheckedStatus(userKey);
+		return ResponseEntity.ok(rewardStatus);
+	}
+
+	@PutMapping("api/v1/reward/status/{userKey}")
+	public ResponseEntity<Void> markRewardAsChecked(@PathVariable String userKey) {
+		userService.markRewardAsChecked(userKey);
+		return ResponseEntity.ok().build();
 	}
 }

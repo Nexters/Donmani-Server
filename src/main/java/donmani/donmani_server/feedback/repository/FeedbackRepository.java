@@ -2,7 +2,9 @@ package donmani.donmani_server.feedback.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
+import donmani.donmani_server.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -20,4 +22,10 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
 
 	@Query("SELECT f.title FROM Feedback f JOIN f.user u WHERE u.id = :userId")
 	List<String> findFeedbackByUserIdUsedTitle(Long userId);
+
+	@Query("SELECT f FROM Feedback f JOIN f.user u WHERE u.id = :userId AND f.isOpened IS FALSE ORDER BY f.createdDate DESC")
+	List<Feedback> findFeedbackByIsOpenedOrderByCreatedDateDesc(Long userId);
+
+	Optional<Feedback> findFirstByUserAndIsOpenedFalseOrderByCreatedDateDesc(User user);
+
 }
