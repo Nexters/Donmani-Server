@@ -14,7 +14,7 @@ public class NcpStorageConfig {
     @Value("${ncp.storage.endpoint}")
     private String endPoint;
 
-    @Value("${ncp.storage.regin}")
+    @Value("${ncp.storage.region}")
     private String regionName;
 
     @Value("${ncp.storage.accessKey}")
