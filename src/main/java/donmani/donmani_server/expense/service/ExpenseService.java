@@ -13,6 +13,8 @@ import donmani.donmani_server.expense.dto.*;
 import donmani.donmani_server.expense.entity.CategoryType;
 import donmani.donmani_server.expense.entity.FlagType;
 
+import donmani.donmani_server.feedback.service.FeedbackService;
+import donmani.donmani_server.reward.service.RewardService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,8 @@ public class ExpenseService {
 
 	private final ExpenseRepository expenseRepository;
 	private final UserService userService;
+	private final FeedbackService feedbackService;
+	private final RewardService rewardService;
 
 	private final static int SIZE = 20; // 전체 조회 페이지 사이즈 고정
 
@@ -69,6 +73,11 @@ public class ExpenseService {
 			.collect(Collectors.toList());
 
 		expenseRepository.saveAll(expenses);
+
+		// 피드백 카드 / 선물 받기
+		feedbackService.addFeedback(request);
+		feedbackService.openFeedback(request.getUserKey());
+		rewardService.acquireRandomItems(request.getUserKey(), request.getRecords().get(0).getDate());
 	}
 
 
@@ -93,6 +102,7 @@ public class ExpenseService {
 		return ExpenseResponseDTO.builder()
 			.userKey(userKey)
 			.records(expenseToDto(expenses, sortedDesc))
+				.saveItems(rewardService.getSavedItem(userKey, year, month))
 			.build();
 	}
 
@@ -226,13 +236,6 @@ public class ExpenseService {
 				.month(month)
 				.categoryCounts(categoryCounts)
 				.build();
-	}
-
-	@Transactional(readOnly = true)
-	public Expense getExpenseSubmitToday(Long userId, LocalDateTime date) {
-		Expense expense = expenseRepository.findExpenseByUserIdAndAndCreatedAt(userId, date);
-
-		return expense;
 	}
 
 	public Integer getTotalExpensesCount(String userKey) {

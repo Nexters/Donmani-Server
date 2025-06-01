@@ -12,14 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import donmani.donmani_server.common.httpStatus.HttpStatusDTO;
 import donmani.donmani_server.expense.service.ExpenseService;
-import donmani.donmani_server.feedback.service.FeedbackService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
 public class ExpenseController {
 	private final ExpenseService expenseService;
-	private final FeedbackService feedbackService;
 
 	@GetMapping("expenses/calendar/{userKey}")
 	public ResponseEntity<ExpenseResponseDTO> getExpensesCalendar(
@@ -77,8 +75,6 @@ public class ExpenseController {
 	public ResponseEntity<HttpStatusDTO<Void>> addExpenseV1(@RequestBody ExpenseRequestDTO request) {
 		try {
 			expenseService.addExpense(request);
-			feedbackService.addFeedback(request);
-
 			// 1. 소비 기록 성공 -> 201
 			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.CREATED.value(), "성공", null));
 		} catch (Exception e) {
