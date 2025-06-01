@@ -238,13 +238,6 @@ public class ExpenseService {
 				.build();
 	}
 
-	@Transactional(readOnly = true)
-	public Expense getExpenseSubmitToday(Long userId, LocalDateTime date) {
-		Expense expense = expenseRepository.findExpenseByUserIdAndAndCreatedAt(userId, date);
-
-		return expense;
-	}
-
 	public Integer getTotalExpensesCount(String userKey) {
 		// 1. 유저 정보 확인
 		User user = userService.getUser(userKey);

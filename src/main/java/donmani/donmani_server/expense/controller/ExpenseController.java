@@ -75,7 +75,6 @@ public class ExpenseController {
 	public ResponseEntity<HttpStatusDTO<Void>> addExpenseV1(@RequestBody ExpenseRequestDTO request) {
 		try {
 			expenseService.addExpense(request);
-
 			// 1. 소비 기록 성공 -> 201
 			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.CREATED.value(), "성공", null));
 		} catch (Exception e) {

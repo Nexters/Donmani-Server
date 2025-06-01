@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+import donmani.donmani_server.expense.repository.ExpenseRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class FeedbackService {
 	private final UserService userService;
-	private final ExpenseService expenseService;
+	private final ExpenseRepository expenseRepository;
 	private final FeedbackRepository feedbackRepository;
 	private final FeedbackTemplateProvider feedbackTemplateProvider;
 
@@ -45,7 +46,7 @@ public class FeedbackService {
 		LocalDateTime baseTime = LocalDateTime.of(2025, 5, 26, 0, 0);  // 2025-05-30 00:00
 
 		if (createdAt.isEqual(baseTime) || createdAt.isAfter(baseTime)) {
-			Expense expense = expenseService.getExpenseSubmitToday(user.getId(), createdAt);
+			Expense expense = expenseRepository.findExpenseByUserIdAndAndCreatedAt(user.getId(), createdAt);
 
 			// GOOD, BAD 일 경우 feedback 생성
 			if (expense.getFlag() != null) {
