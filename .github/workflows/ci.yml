@@ -64,6 +64,13 @@ jobs:
       - name: Wait for MySQL to be ready
         run: sleep 15
 
+      - name: Make application-test.properties
+        run: |
+          cd ./src/test/resources
+          touch ./application-test.properties
+          echo "${{ secrets.PROPERTIES_TEST }}" > ./application-test.properties
+        shell: bash
+
       # 테스트를 제외한 프로젝트 빌드
       - name: Build With Gradle
         run: ./gradlew build -x test
