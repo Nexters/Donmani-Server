@@ -46,10 +46,10 @@ public class FeedbackController {
 		}
 	}
 
-	@PostMapping("api/v1/feedback/{userKey}")
-	public ResponseEntity<HttpStatusDTO<FeedbackOpenResponseDTO>> openFeedbackV1(@Valid @PathVariable String userKey) {
+	@GetMapping("api/v1/feedback/content/{userKey}")
+	public ResponseEntity<HttpStatusDTO<FeedbackOpenResponseDTO>> getFeedbackContentV1(@Valid @PathVariable String userKey) {
 		try {
-			FeedbackOpenResponseDTO response = feedbackService.openFeedback(userKey);
+			FeedbackOpenResponseDTO response = feedbackService.getNotOpenedFeedbackContent(userKey);
 
 			// 1. 피드백 열기 성공 -> 201
 			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.CREATED.value(), "성공", response));

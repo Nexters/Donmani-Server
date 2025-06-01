@@ -5,6 +5,7 @@ import java.time.ZoneId;
 import java.util.Optional;
 
 import donmani.donmani_server.expense.dto.NoticeReadDTO;
+import donmani.donmani_server.reward.dto.RewardCheckDTO;
 import donmani.donmani_server.user.dto.UserRegisterResponseDTO;
 import donmani.donmani_server.user.dto.UpdateUsernameResponseDTO;
 import donmani.donmani_server.user.dto.UserRegisterResponseDTOV1;
@@ -158,5 +159,27 @@ public class UserService {
 			.orElseThrow(() -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다."));
 
 		return user;
+	}
+
+
+	@Transactional
+	public void markRewardAsChecked(String userKey) {
+		LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+
+		User user = userRepository.findByUserKey(userKey)
+				.orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+		user.setRewardChecked(true); // 공지사항 읽음 처리
+		user.setUpdateDate(localDateTime);
+
+		userRepository.save(user);
+	}
+
+	@Transactional(readOnly = true)
+	public RewardCheckDTO getRewardCheckedStatus(String userKey) {
+		User user = userRepository.findByUserKey(userKey)
+				.orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+		return RewardCheckDTO.builder().checked(user.isRewardChecked()).build(); // 읽음 여부 반환
 	}
 }
