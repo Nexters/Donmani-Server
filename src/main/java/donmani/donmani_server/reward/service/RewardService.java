@@ -62,7 +62,7 @@ public class RewardService {
         }
 
         // user가 가지고 있지 않은 아이템 중 랜덤으로 획득 (히든 제외)
-        List<RewardItem> allItems = rewardItemRepository.findAllByHiddenFalse();
+        List<RewardItem> allItems = rewardItemRepository.findAllVisibleItems();
         List<RewardItem> availableRewards = allItems.stream()
                 .filter(item -> !acquiredItems.contains(item))
                 .collect(Collectors.toList());

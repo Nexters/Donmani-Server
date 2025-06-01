@@ -29,5 +29,5 @@ public class RewardItem {
     @Column
     private String mp3Url;
 
-    private boolean hidden; // 히든 아이템 여부
+    private boolean isHidden; // 히든 아이템 여부
 }
