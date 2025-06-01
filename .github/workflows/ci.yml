@@ -69,9 +69,7 @@ jobs:
 
       # 테스트 실행
       - name: Build With Test
-        run: ./gradlew test -Dspring.datasource.url=jdbc:mysql://localhost:3306/testdb \
-          -Dspring.datasource.username=testuser \
-          -Dspring.datasource.password=testpassword
+        run: ./gradlew test
 
       # 테스트 결과 파일 생성
       - name: Publish Unit Test Results
