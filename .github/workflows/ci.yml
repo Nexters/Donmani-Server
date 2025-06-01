@@ -28,6 +28,7 @@ jobs:
           --health-retries=5
 
     env:
+      SPRING_PROFILES_ACTIVE: test
       SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/testdb
       SPRING_DATASOURCE_USERNAME: testuser
       SPRING_DATASOURCE_PASSWORD: testpassword
