@@ -330,6 +330,7 @@ public class RewardService {
      * @param userKey
      * @return boolean
      */
+    @Transactional(readOnly = true)
     public boolean hasNotOpenedRewards(String userKey) {
         User user = userRepository.findByUserKey(userKey)
             .orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
