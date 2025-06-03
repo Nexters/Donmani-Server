@@ -28,7 +28,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
 	Expense findExpenseByUserIdAndAndCreatedAt(Long userId, LocalDateTime date);
 
 	// @Query("SELECT DISTINCT e.createdAt FROM Expense e WHERE DATE_FORMAT(e.createdAt, '%Y%m%d') >= DATE_FORMAT('20250525', '%Y%m%d') AND e.userId = :userId")
-	@Query("SELECT DISTINCT e.createdAt FROM Expense e WHERE e.userId = :userId")
+	@Query("SELECT DISTINCT e.createdAt FROM Expense e JOIN Feedback f ON e.feedback.id = f.id WHERE e.userId = :userId")
 	List<LocalDateTime> findTotalExpensesCount(Long userId);
 
 	Expense findExpenseById(Long id);
