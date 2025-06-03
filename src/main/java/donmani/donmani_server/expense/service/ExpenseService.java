@@ -81,7 +81,7 @@ public class ExpenseService {
 	}
 
 
-	@Transactional(readOnly = true)
+	@Transactional
 	public ExpenseResponseDTO getExpenses(String userKey, int year, int month, boolean sortedDesc) {
 		Long userId = userService.getUserIdByUserKey(userKey);
 
