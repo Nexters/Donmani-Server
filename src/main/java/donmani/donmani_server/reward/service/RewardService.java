@@ -324,4 +324,22 @@ public class RewardService {
                 .acquiredAt(LocalDateTime.now())
                 .isOpened(true).build();
     }
+
+    /**
+     * 오픈하지 않은 선물 여부 확인
+     * @param userKey
+     * @return boolean
+     */
+    @Transactional(readOnly = true)
+    public boolean hasNotOpenedRewards(String userKey) {
+        User user = userRepository.findByUserKey(userKey)
+            .orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
+
+        LocalDateTime start = YearMonth.now().atDay(1).atStartOfDay();
+        LocalDateTime end = start.plusMonths(1).minusNanos(1); // 23:59:59.999999999
+
+        List<UserItem> notOpenedItems = userItemRepository.findByUserAndAcquiredAtBetweenAndNotOpened(user, start, end);
+
+        return notOpenedItems == null || notOpenedItems.isEmpty() ? false : true;
+    }
 }

@@ -81,7 +81,7 @@ public class ExpenseService {
 	}
 
 
-	@Transactional(readOnly = true)
+	@Transactional
 	public ExpenseResponseDTO getExpenses(String userKey, int year, int month, boolean sortedDesc) {
 		Long userId = userService.getUserIdByUserKey(userKey);
 
@@ -92,17 +92,22 @@ public class ExpenseService {
 		// userId와 year, month로 직접 expense를 조회
 		List<Expense> expenses = expenseRepository.findByUserIdAndMonth(userId, year, month);
 
+		// 오픈하지 않은 선물 여부 확인
+		boolean hasNotOpenedRewards = rewardService.hasNotOpenedRewards(userKey);
+
 		if(expenses.isEmpty()) {
 			return ExpenseResponseDTO.builder()
 					.userKey(userKey)
 					.records(null)
+					.hasNotOpenedRewards(hasNotOpenedRewards)
 					.build();
 		}
 
 		return ExpenseResponseDTO.builder()
 			.userKey(userKey)
 			.records(expenseToDto(expenses, sortedDesc))
-				.saveItems(rewardService.getSavedItem(userKey, year, month))
+			.saveItems(rewardService.getSavedItem(userKey, year, month))
+			.hasNotOpenedRewards(hasNotOpenedRewards)
 			.build();
 	}
 
