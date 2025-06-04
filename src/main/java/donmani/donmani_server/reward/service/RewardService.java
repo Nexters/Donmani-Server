@@ -42,8 +42,8 @@ public class RewardService {
         ZonedDateTime nowInSeoul = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
         LocalDate todayInSeoul = nowInSeoul.toLocalDate();
 
-        if(reqDate.getYear() == todayInSeoul.getYear() &&
-                reqDate.getMonthValue() == todayInSeoul.getMonthValue()) {
+        if(reqDate.getYear() != todayInSeoul.getYear() ||
+                reqDate.getMonthValue() != todayInSeoul.getMonthValue()) {
             // 어제 기록이 지난달이면 선물 받으면 안됨.
             return;
         }
