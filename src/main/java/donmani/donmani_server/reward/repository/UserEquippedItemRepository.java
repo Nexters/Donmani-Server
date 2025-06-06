@@ -12,11 +12,13 @@ public interface UserEquippedItemRepository extends JpaRepository<UserEquippedIt
     @Query("SELECT e FROM UserEquippedItem e " +
             "WHERE e.user = :user " +
             "AND FUNCTION('YEAR', e.savedAt) = :year " +
-            "AND FUNCTION('MONTH', e.savedAt) = :month")
-    Optional<UserEquippedItem> findByUserAndSavedAtInCurrentMonth(
+            "AND FUNCTION('MONTH', e.savedAt) = :month " +
+            "ORDER BY e.savedAt DESC")
+    Optional<UserEquippedItem> findTopByUserAndSavedAtInCurrentMonth(
             @Param("user") User user,
             @Param("year") int year,
             @Param("month") int month
     );
+
 
 }

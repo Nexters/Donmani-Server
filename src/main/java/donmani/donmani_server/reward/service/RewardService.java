@@ -230,7 +230,7 @@ public class RewardService {
             throw new IllegalArgumentException("유효하지 않은 요청입니다.");
         }
 
-        Optional<UserEquippedItem> equippedItem = userEquippedItemRepository.findByUserAndSavedAtInCurrentMonth(user, year, month);
+        Optional<UserEquippedItem> equippedItem = userEquippedItemRepository.findTopByUserAndSavedAtInCurrentMonth(user, year, month);
 
         RewardItem updateBackground = rewardItemRepository.findById(request.getBackgroundId()).orElseThrow();
         RewardItem updateEffect = rewardItemRepository.findById(request.getEffectId()).orElseThrow();
@@ -270,7 +270,7 @@ public class RewardService {
 
         User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
-        Optional<UserEquippedItem> savedItem = userEquippedItemRepository.findByUserAndSavedAtInCurrentMonth(user, year, month);
+        Optional<UserEquippedItem> savedItem = userEquippedItemRepository.findTopByUserAndSavedAtInCurrentMonth(user, year, month);
 
         if(savedItem.isPresent()) {
             UserEquippedItem presentSavedItem = savedItem.get();
