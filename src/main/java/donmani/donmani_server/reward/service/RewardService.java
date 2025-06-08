@@ -251,7 +251,7 @@ public class RewardService {
 
         Optional<UserEquippedItem> savedItem = userEquippedItemRepository.findTopByUserAndSavedAtInCurrentMonth(user.getId(), year, month);
 
-        if(!savedItem.isEmpty()) {
+        if(savedItem.isPresent()) {
             UserEquippedItem presentSavedItem = savedItem.get();
 
             background = presentSavedItem.getBackground();
@@ -278,13 +278,14 @@ public class RewardService {
                     .savedAt(LocalDateTime.now())
                     .build();
 
+            userEquippedItemRepository.save(newEquippedItem);
+
             // default 아이템도 userItem에 추가
             userItemRepository.save(makeUserItem(user, background));
             userItemRepository.save(makeUserItem(user, effect));
             userItemRepository.save(makeUserItem(user, decoration));
             userItemRepository.save(makeUserItem(user, byeoltongCase));
             userItemRepository.save(makeUserItem(user, bgm));
-            userEquippedItemRepository.save(newEquippedItem);
         }
 
         savedItems.add(RewardItemResponseDTO.of(background));
