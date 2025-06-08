@@ -53,7 +53,7 @@ public class RewardService {
         LocalDateTime start = YearMonth.now().atDay(1).atStartOfDay();
         LocalDateTime end = start.plusMonths(1).minusNanos(1); // 23:59:59.999999999
 
-        List<UserItem> acquiredItems = userItemRepository.findByUserAndAcquiredAtBetween(user, start, end);
+        List<UserItem> acquiredItems = userItemRepository.findByUserAndAcquiredAtBetweenOrderByAcquiredAtDesc(user, start, end);
 
         if(acquiredItems.size() == MAX_REWARD) {
             // 인당 월 최대 14개의 선물 생성 가능
@@ -121,7 +121,7 @@ public class RewardService {
         userItemRepository.saveAll(notOpenedItems);
 
         // 히든 아이템 획득
-        openHiddenItems(user, start, end);;
+        acquireHiddenItems(user, start, end);;
 
         List<RewardItemResponseDTO> response = new ArrayList<>();
         for (UserItem item : notOpenedItems) {
@@ -131,8 +131,8 @@ public class RewardService {
         return response;
     }
 
-    private void openHiddenItems(User user, LocalDateTime start, LocalDateTime end) {
-        List<UserItem> acquiredItems = userItemRepository.findByUserAndAcquiredAtBetween(user, start, end);
+    private void acquireHiddenItems(User user, LocalDateTime start, LocalDateTime end) {
+        List<UserItem> acquiredItems = userItemRepository.findByUserAndAcquiredAtBetweenOrderByAcquiredAtDesc(user, start, end);
         if(acquiredItems.size() == MAX_REWARD) {
             RewardItem hiddenItem = rewardItemRepository.findFirstByHiddenTrue().orElseThrow();
             UserItem newUserItem = UserItem.builder()
@@ -158,44 +158,23 @@ public class RewardService {
         LocalDateTime start = YearMonth.now().atDay(1).atStartOfDay();
         LocalDateTime end = start.plusMonths(1).minusNanos(1); // 23:59:59.999999999
 
-        List<UserItem> acquiredItems = userItemRepository.findByUserAndAcquiredAtBetween(user, start, end);
+        // 유저가 획득한 아이템
+        List<UserItem> acquiredItems = userItemRepository.findByUserAndAcquiredAtBetweenOrderByAcquiredAtDesc(user, start, end);
         LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
 
-        // 유저가 소유한 RewardItem
-        Set<Long> ownedItemIds = new HashSet<>();
-        // 최근 3일 이내 획득한 RewardItem
-        Set<Long> recentlyAcquiredItemIds = new HashSet<>();
-        // 히든 아이템 처음 받았는지 여부 flag
-        boolean newAcquiredHiddenItem = false;
-
-        for (UserItem userItem : acquiredItems) {
-            Long itemId = userItem.getItem().getId();
-            ownedItemIds.add(itemId);
-            if (userItem.getAcquiredAt().isAfter(threeDaysAgo)) {
-                recentlyAcquiredItemIds.add(itemId);
-            }
-
-            // 히든 아이템을 갖고 있는데 isOpened가 fasle라면, 최초 1회도 꾸미기 탭 내에서 확인하지 않은 것으로 간주
-            if(userItem.getItem().isHidden()) {
-                if(!userItem.isOpened()) newAcquiredHiddenItem = true;
-            }
-        }
-
-        // stream 내부 사용을 위해 얕은 복사
-        boolean copyFlag = newAcquiredHiddenItem;
-
-        List<RewardItemResponseDTO> dtos = rewardItemRepository.findAll().stream()
+        List<RewardItemResponseDTO> response = acquiredItems.stream()
                 .map(item -> {
-                    boolean owned = ownedItemIds.contains(item.getId());
-                    boolean newAcquired = recentlyAcquiredItemIds.contains(item.getId());
-                    if(owned && item.isHidden()) {
-                        newAcquired = copyFlag;
+                    // 3일 이내 획득한 Item
+                    boolean newAcquired = item.getAcquiredAt().isAfter(threeDaysAgo) ? true : false;
+                    // Hidden 아이템 처음 받았는지 여부
+                    if(item.getItem().isHidden() && !item.isOpened()) {
+                        newAcquired = true;
                     }
-                    return RewardItemResponseDTO.of(item, owned, newAcquired);
-                })
-                .collect(Collectors.toList());
 
-        return dtos.stream()
+                    return RewardItemResponseDTO.of(item.getItem(), newAcquired);
+                }).collect(Collectors.toList());
+
+        return response.stream()
                 .collect(Collectors.groupingBy(RewardItemResponseDTO::getCategory));
     }
 
