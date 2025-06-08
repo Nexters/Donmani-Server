@@ -251,7 +251,7 @@ public class RewardService {
 
         Optional<UserEquippedItem> savedItem = userEquippedItemRepository.findTopByUserAndSavedAtInCurrentMonth(user, year, month);
 
-        if(savedItem.isPresent()) {
+        if(!savedItem.isEmpty()) {
             UserEquippedItem presentSavedItem = savedItem.get();
 
             background = presentSavedItem.getBackground();
