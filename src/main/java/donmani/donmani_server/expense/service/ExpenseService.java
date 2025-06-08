@@ -179,7 +179,8 @@ public class ExpenseService {
 			));
 
 		// 현재 월 계산
-		int currentMonth = (year == LocalDate.now().getYear()) ? LocalDate.now().getMonthValue() : 12;
+		int currentMonth = (year == LocalDate.now(ZoneId.of("Asia/Seoul")).getYear()) ?
+				LocalDate.now(ZoneId.of("Asia/Seoul")).getMonthValue() : 12;
 
 		// RecordInfoDTO 변환 : 1월부터 현재 월까지 반복
 		Map<Integer, RecordInfoDTO> monthlyRecords = IntStream.rangeClosed(1, currentMonth)
