@@ -53,7 +53,7 @@ public class RewardService {
 
         User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
-        LocalDateTime start = YearMonth.now().atDay(1).atStartOfDay();
+        LocalDateTime start = YearMonth.now(ZoneId.of("Asia/Seoul")).atDay(1).atStartOfDay();
         LocalDateTime end = start.plusMonths(1).minusNanos(1); // 23:59:59.999999999
 
         List<UserItem> acquiredItems = userItemRepository.findByUserAndAcquiredAtBetweenOrderByAcquiredAtDesc(user, start, end);
@@ -75,7 +75,7 @@ public class RewardService {
         UserItem newUserItem = UserItem.builder()
                 .user(user)
                 .item(selected)
-                .acquiredAt(LocalDateTime.now())
+                .acquiredAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .isOpened(false)
                 .build();
 
@@ -91,7 +91,7 @@ public class RewardService {
     public int getNotOpenedItemSize(String userKey) {
         User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
-        LocalDateTime start = YearMonth.now().atDay(1).atStartOfDay();
+        LocalDateTime start = YearMonth.now(ZoneId.of("Asia/Seoul")).atDay(1).atStartOfDay();
         LocalDateTime end = start.plusMonths(1).minusNanos(1); // 23:59:59.999999999
 
         List<UserItem> notOpenedItems = userItemRepository.findByUserAndAcquiredAtBetweenAndNotOpened(user, start, end);
@@ -107,7 +107,7 @@ public class RewardService {
     public List<RewardItemResponseDTO> openItems(String userKey) {
         User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
-        LocalDateTime start = YearMonth.now().atDay(1).atStartOfDay();
+        LocalDateTime start = YearMonth.now(ZoneId.of("Asia/Seoul")).atDay(1).atStartOfDay();
         LocalDateTime end = start.plusMonths(1).minusNanos(1); // 23:59:59.999999999
 
         // 피드백 열기 (중간 이탈해도 피드백+선물 한 set으로 열기)
@@ -141,7 +141,7 @@ public class RewardService {
             UserItem newUserItem = UserItem.builder()
                     .user(user)
                     .item(hiddenItem)
-                    .acquiredAt(LocalDateTime.now())
+                    .acquiredAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                     .isOpened(false)
                     .build();
             userItemRepository.save(newUserItem);
@@ -158,12 +158,12 @@ public class RewardService {
     public Map<RewardCategory, List<RewardItemResponseDTO>> getAcquiredItem(String userKey) {
         User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
-        LocalDateTime start = YearMonth.now().atDay(1).atStartOfDay();
+        LocalDateTime start = YearMonth.now(ZoneId.of("Asia/Seoul")).atDay(1).atStartOfDay();
         LocalDateTime end = start.plusMonths(1).minusNanos(1); // 23:59:59.999999999
 
         // 유저가 획득한 아이템
         List<UserItem> acquiredItems = userItemRepository.findByUserAndAcquiredAtBetweenOrderByAcquiredAtDesc(user, start, end);
-        LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
+        LocalDateTime threeDaysAgo = LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusDays(3);
 
         List<RewardItemResponseDTO> response = acquiredItems.stream()
                 .map(item -> {
@@ -199,7 +199,7 @@ public class RewardService {
     public void saveItem(RewardItemSaveRequestDTO request) {
         User user = userRepository.findByUserKey(request.getUserKey()).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         int year = now.getYear();
         int month = now.getMonthValue();
 
@@ -281,7 +281,7 @@ public class RewardService {
                         .decoration(decoration)
                         .byeoltongCase(byeoltongCase)
                         .bgm(bgm)
-                        .savedAt(LocalDateTime.now())
+                        .savedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                         .build();
 
                 userEquippedItemRepository.save(newEquippedItem);
@@ -308,7 +308,7 @@ public class RewardService {
         return UserItem.builder()
                 .user(user)
                 .item(item)
-                .acquiredAt(LocalDateTime.now())
+                .acquiredAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .isOpened(true).build();
     }
 
@@ -322,7 +322,7 @@ public class RewardService {
         User user = userRepository.findByUserKey(userKey)
             .orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
-        LocalDateTime start = YearMonth.now().atDay(1).atStartOfDay();
+        LocalDateTime start = YearMonth.now(ZoneId.of("Asia/Seoul")).atDay(1).atStartOfDay();
         LocalDateTime end = start.plusMonths(1).minusNanos(1); // 23:59:59.999999999
 
         List<UserItem> notOpenedItems = userItemRepository.findByUserAndAcquiredAtBetweenAndNotOpened(user, start, end);
