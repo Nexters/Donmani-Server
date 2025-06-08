@@ -99,6 +99,7 @@ public class ExpenseService {
 			return ExpenseResponseDTO.builder()
 					.userKey(userKey)
 					.records(null)
+					.saveItems(rewardService.getSavedItem(userKey, year, month))
 					.hasNotOpenedRewards(hasNotOpenedRewards)
 					.build();
 		}
