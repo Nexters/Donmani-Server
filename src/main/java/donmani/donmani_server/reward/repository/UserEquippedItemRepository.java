@@ -9,13 +9,14 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface UserEquippedItemRepository extends JpaRepository<UserEquippedItem, Long> {
-    @Query("SELECT e FROM UserEquippedItem e " +
-            "WHERE e.user = :user " +
-            "AND FUNCTION('YEAR', e.savedAt) = :year " +
-            "AND FUNCTION('MONTH', e.savedAt) = :month " +
-            "ORDER BY e.savedAt DESC")
+    @Query(value = "SELECT * FROM user_equipped_item e " +
+            "WHERE e.user_id = :userId " +
+            "AND YEAR(e.saved_at) = :year " +
+            "AND MONTH(e.saved_at) = :month " +
+            "ORDER BY e.saved_at DESC " +
+            "LIMIT 1", nativeQuery = true)
     Optional<UserEquippedItem> findTopByUserAndSavedAtInCurrentMonth(
-            @Param("user") User user,
+            @Param("userId") Long userId,
             @Param("year") int year,
             @Param("month") int month
     );
