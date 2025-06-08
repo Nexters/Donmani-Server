@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +33,8 @@ public class RewardService {
     private final UserEquippedItemRepository userEquippedItemRepository;
 
     private final static int MAX_REWARD = 19; // default item 5개는 카운트에 불포함
+
+    private final ConcurrentHashMap<String, Object> locks = new ConcurrentHashMap<>();
 
     /**
      * 기록과 동시에 선물 획득
@@ -247,54 +250,58 @@ public class RewardService {
         List<RewardItemResponseDTO> savedItems = new ArrayList<>();
         RewardItem background = null, effect = null, decoration = null, byeoltongCase = null, bgm = null;
 
-        User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
+        Object userLock = locks.computeIfAbsent(userKey, k -> new Object());
 
-        Optional<UserEquippedItem> savedItem = userEquippedItemRepository.findTopByUserAndSavedAtInCurrentMonth(user.getId(), year, month);
+        synchronized(userLock) {
+            User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
-        if(savedItem.isPresent()) {
-            UserEquippedItem presentSavedItem = savedItem.get();
+            Optional<UserEquippedItem> savedItem = userEquippedItemRepository.findTopByUserAndSavedAtInCurrentMonth(user.getId(), year, month);
 
-            background = presentSavedItem.getBackground();
-            effect = presentSavedItem.getEffect();
-            decoration = presentSavedItem.getDecoration();
-            byeoltongCase = presentSavedItem.getByeoltongCase();
-            bgm = presentSavedItem.getBgm();
-        } else {
-            // 꾸미기 저장 데이터 없으면 default 세팅
-            background = rewardItemRepository.findById(1L).orElseThrow();
-            effect = rewardItemRepository.findById(2L).orElseThrow();
-            decoration = rewardItemRepository.findById(3L).orElseThrow();
-            byeoltongCase = rewardItemRepository.findById(4L).orElseThrow();
-            bgm = rewardItemRepository.findById(5L).orElseThrow();
+            if(savedItem.isPresent()) {
+                UserEquippedItem presentSavedItem = savedItem.get();
 
-            // default 세팅으로 저장
-            UserEquippedItem newEquippedItem = UserEquippedItem.builder()
-                    .user(user)
-                    .background(background)
-                    .effect(effect)
-                    .decoration(decoration)
-                    .byeoltongCase(byeoltongCase)
-                    .bgm(bgm)
-                    .savedAt(LocalDateTime.now())
-                    .build();
+                background = presentSavedItem.getBackground();
+                effect = presentSavedItem.getEffect();
+                decoration = presentSavedItem.getDecoration();
+                byeoltongCase = presentSavedItem.getByeoltongCase();
+                bgm = presentSavedItem.getBgm();
+            } else {
+                // 꾸미기 저장 데이터 없으면 default 세팅
+                background = rewardItemRepository.findById(1L).orElseThrow();
+                effect = rewardItemRepository.findById(2L).orElseThrow();
+                decoration = rewardItemRepository.findById(3L).orElseThrow();
+                byeoltongCase = rewardItemRepository.findById(4L).orElseThrow();
+                bgm = rewardItemRepository.findById(5L).orElseThrow();
 
-            userEquippedItemRepository.save(newEquippedItem);
+                // default 세팅으로 저장
+                UserEquippedItem newEquippedItem = UserEquippedItem.builder()
+                        .user(user)
+                        .background(background)
+                        .effect(effect)
+                        .decoration(decoration)
+                        .byeoltongCase(byeoltongCase)
+                        .bgm(bgm)
+                        .savedAt(LocalDateTime.now())
+                        .build();
 
-            // default 아이템도 userItem에 추가
-            userItemRepository.save(makeUserItem(user, background));
-            userItemRepository.save(makeUserItem(user, effect));
-            userItemRepository.save(makeUserItem(user, decoration));
-            userItemRepository.save(makeUserItem(user, byeoltongCase));
-            userItemRepository.save(makeUserItem(user, bgm));
+                userEquippedItemRepository.save(newEquippedItem);
+
+                // default 아이템도 userItem에 추가
+                userItemRepository.save(makeUserItem(user, background));
+                userItemRepository.save(makeUserItem(user, effect));
+                userItemRepository.save(makeUserItem(user, decoration));
+                userItemRepository.save(makeUserItem(user, byeoltongCase));
+                userItemRepository.save(makeUserItem(user, bgm));
+            }
+
+            savedItems.add(RewardItemResponseDTO.of(background));
+            savedItems.add(RewardItemResponseDTO.of(effect));
+            savedItems.add(RewardItemResponseDTO.of(decoration));
+            savedItems.add(RewardItemResponseDTO.of(byeoltongCase));
+            savedItems.add(RewardItemResponseDTO.of(bgm));
+
+            return savedItems;
         }
-
-        savedItems.add(RewardItemResponseDTO.of(background));
-        savedItems.add(RewardItemResponseDTO.of(effect));
-        savedItems.add(RewardItemResponseDTO.of(decoration));
-        savedItems.add(RewardItemResponseDTO.of(byeoltongCase));
-        savedItems.add(RewardItemResponseDTO.of(bgm));
-
-        return savedItems;
     }
 
     private UserItem makeUserItem(User user, RewardItem item) {
