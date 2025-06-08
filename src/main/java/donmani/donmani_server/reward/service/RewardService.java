@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +33,8 @@ public class RewardService {
     private final UserEquippedItemRepository userEquippedItemRepository;
 
     private final static int MAX_REWARD = 19; // default item 5개는 카운트에 불포함
+
+    private final ConcurrentHashMap<String, Object> locks = new ConcurrentHashMap<>();
 
     /**
      * 기록과 동시에 선물 획득
@@ -53,7 +56,7 @@ public class RewardService {
         LocalDateTime start = YearMonth.now().atDay(1).atStartOfDay();
         LocalDateTime end = start.plusMonths(1).minusNanos(1); // 23:59:59.999999999
 
-        List<UserItem> acquiredItems = userItemRepository.findByUserAndAcquiredAtBetween(user, start, end);
+        List<UserItem> acquiredItems = userItemRepository.findByUserAndAcquiredAtBetweenOrderByAcquiredAtDesc(user, start, end);
 
         if(acquiredItems.size() == MAX_REWARD) {
             // 인당 월 최대 14개의 선물 생성 가능
@@ -121,7 +124,7 @@ public class RewardService {
         userItemRepository.saveAll(notOpenedItems);
 
         // 히든 아이템 획득
-        openHiddenItems(user, start, end);;
+        acquireHiddenItems(user, start, end);;
 
         List<RewardItemResponseDTO> response = new ArrayList<>();
         for (UserItem item : notOpenedItems) {
@@ -131,8 +134,8 @@ public class RewardService {
         return response;
     }
 
-    private void openHiddenItems(User user, LocalDateTime start, LocalDateTime end) {
-        List<UserItem> acquiredItems = userItemRepository.findByUserAndAcquiredAtBetween(user, start, end);
+    private void acquireHiddenItems(User user, LocalDateTime start, LocalDateTime end) {
+        List<UserItem> acquiredItems = userItemRepository.findByUserAndAcquiredAtBetweenOrderByAcquiredAtDesc(user, start, end);
         if(acquiredItems.size() == MAX_REWARD) {
             RewardItem hiddenItem = rewardItemRepository.findFirstByHiddenTrue().orElseThrow();
             UserItem newUserItem = UserItem.builder()
@@ -158,44 +161,23 @@ public class RewardService {
         LocalDateTime start = YearMonth.now().atDay(1).atStartOfDay();
         LocalDateTime end = start.plusMonths(1).minusNanos(1); // 23:59:59.999999999
 
-        List<UserItem> acquiredItems = userItemRepository.findByUserAndAcquiredAtBetween(user, start, end);
+        // 유저가 획득한 아이템
+        List<UserItem> acquiredItems = userItemRepository.findByUserAndAcquiredAtBetweenOrderByAcquiredAtDesc(user, start, end);
         LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
 
-        // 유저가 소유한 RewardItem
-        Set<Long> ownedItemIds = new HashSet<>();
-        // 최근 3일 이내 획득한 RewardItem
-        Set<Long> recentlyAcquiredItemIds = new HashSet<>();
-        // 히든 아이템 처음 받았는지 여부 flag
-        boolean newAcquiredHiddenItem = false;
-
-        for (UserItem userItem : acquiredItems) {
-            Long itemId = userItem.getItem().getId();
-            ownedItemIds.add(itemId);
-            if (userItem.getAcquiredAt().isAfter(threeDaysAgo)) {
-                recentlyAcquiredItemIds.add(itemId);
-            }
-
-            // 히든 아이템을 갖고 있는데 isOpened가 fasle라면, 최초 1회도 꾸미기 탭 내에서 확인하지 않은 것으로 간주
-            if(userItem.getItem().isHidden()) {
-                if(!userItem.isOpened()) newAcquiredHiddenItem = true;
-            }
-        }
-
-        // stream 내부 사용을 위해 얕은 복사
-        boolean copyFlag = newAcquiredHiddenItem;
-
-        List<RewardItemResponseDTO> dtos = rewardItemRepository.findAll().stream()
+        List<RewardItemResponseDTO> response = acquiredItems.stream()
                 .map(item -> {
-                    boolean owned = ownedItemIds.contains(item.getId());
-                    boolean newAcquired = recentlyAcquiredItemIds.contains(item.getId());
-                    if(owned && item.isHidden()) {
-                        newAcquired = copyFlag;
+                    // 3일 이내 획득한 Item
+                    boolean newAcquired = item.getAcquiredAt().isAfter(threeDaysAgo) ? true : false;
+                    // Hidden 아이템 처음 받았는지 여부
+                    if(item.getItem().isHidden() && !item.isOpened()) {
+                        newAcquired = true;
                     }
-                    return RewardItemResponseDTO.of(item, owned, newAcquired);
-                })
-                .collect(Collectors.toList());
 
-        return dtos.stream()
+                    return RewardItemResponseDTO.of(item.getItem(), newAcquired);
+                }).collect(Collectors.toList());
+
+        return response.stream()
                 .collect(Collectors.groupingBy(RewardItemResponseDTO::getCategory));
     }
 
@@ -230,7 +212,7 @@ public class RewardService {
             throw new IllegalArgumentException("유효하지 않은 요청입니다.");
         }
 
-        Optional<UserEquippedItem> equippedItem = userEquippedItemRepository.findTopByUserAndSavedAtInCurrentMonth(user, year, month);
+        Optional<UserEquippedItem> equippedItem = userEquippedItemRepository.findTopByUserAndSavedAtInCurrentMonth(user.getId(), year, month);
 
         RewardItem updateBackground = rewardItemRepository.findById(request.getBackgroundId()).orElseThrow();
         RewardItem updateEffect = rewardItemRepository.findById(request.getEffectId()).orElseThrow();
@@ -268,53 +250,58 @@ public class RewardService {
         List<RewardItemResponseDTO> savedItems = new ArrayList<>();
         RewardItem background = null, effect = null, decoration = null, byeoltongCase = null, bgm = null;
 
-        User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
+        Object userLock = locks.computeIfAbsent(userKey, k -> new Object());
 
-        Optional<UserEquippedItem> savedItem = userEquippedItemRepository.findTopByUserAndSavedAtInCurrentMonth(user, year, month);
+        synchronized(userLock) {
+            User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
-        if(savedItem.isPresent()) {
-            UserEquippedItem presentSavedItem = savedItem.get();
+            Optional<UserEquippedItem> savedItem = userEquippedItemRepository.findTopByUserAndSavedAtInCurrentMonth(user.getId(), year, month);
 
-            background = presentSavedItem.getBackground();
-            effect = presentSavedItem.getEffect();
-            decoration = presentSavedItem.getDecoration();
-            byeoltongCase = presentSavedItem.getByeoltongCase();
-            bgm = presentSavedItem.getBgm();
-        } else {
-            // 꾸미기 저장 데이터 없으면 default 세팅
-            background = rewardItemRepository.findById(1L).orElseThrow();
-            effect = rewardItemRepository.findById(2L).orElseThrow();
-            decoration = rewardItemRepository.findById(3L).orElseThrow();
-            byeoltongCase = rewardItemRepository.findById(4L).orElseThrow();
-            bgm = rewardItemRepository.findById(5L).orElseThrow();
+            if(savedItem.isPresent()) {
+                UserEquippedItem presentSavedItem = savedItem.get();
 
-            // default 세팅으로 저장
-            UserEquippedItem newEquippedItem = UserEquippedItem.builder()
-                    .user(user)
-                    .background(background)
-                    .effect(effect)
-                    .decoration(decoration)
-                    .byeoltongCase(byeoltongCase)
-                    .bgm(bgm)
-                    .savedAt(LocalDateTime.now())
-                    .build();
+                background = presentSavedItem.getBackground();
+                effect = presentSavedItem.getEffect();
+                decoration = presentSavedItem.getDecoration();
+                byeoltongCase = presentSavedItem.getByeoltongCase();
+                bgm = presentSavedItem.getBgm();
+            } else {
+                // 꾸미기 저장 데이터 없으면 default 세팅
+                background = rewardItemRepository.findById(1L).orElseThrow();
+                effect = rewardItemRepository.findById(2L).orElseThrow();
+                decoration = rewardItemRepository.findById(3L).orElseThrow();
+                byeoltongCase = rewardItemRepository.findById(4L).orElseThrow();
+                bgm = rewardItemRepository.findById(5L).orElseThrow();
 
-            // default 아이템도 userItem에 추가
-            userItemRepository.save(makeUserItem(user, background));
-            userItemRepository.save(makeUserItem(user, effect));
-            userItemRepository.save(makeUserItem(user, decoration));
-            userItemRepository.save(makeUserItem(user, byeoltongCase));
-            userItemRepository.save(makeUserItem(user, bgm));
-            userEquippedItemRepository.save(newEquippedItem);
+                // default 세팅으로 저장
+                UserEquippedItem newEquippedItem = UserEquippedItem.builder()
+                        .user(user)
+                        .background(background)
+                        .effect(effect)
+                        .decoration(decoration)
+                        .byeoltongCase(byeoltongCase)
+                        .bgm(bgm)
+                        .savedAt(LocalDateTime.now())
+                        .build();
+
+                userEquippedItemRepository.save(newEquippedItem);
+
+                // default 아이템도 userItem에 추가
+                userItemRepository.save(makeUserItem(user, background));
+                userItemRepository.save(makeUserItem(user, effect));
+                userItemRepository.save(makeUserItem(user, decoration));
+                userItemRepository.save(makeUserItem(user, byeoltongCase));
+                userItemRepository.save(makeUserItem(user, bgm));
+            }
+
+            savedItems.add(RewardItemResponseDTO.of(background));
+            savedItems.add(RewardItemResponseDTO.of(effect));
+            savedItems.add(RewardItemResponseDTO.of(decoration));
+            savedItems.add(RewardItemResponseDTO.of(byeoltongCase));
+            savedItems.add(RewardItemResponseDTO.of(bgm));
+
+            return savedItems;
         }
-
-        savedItems.add(RewardItemResponseDTO.of(background));
-        savedItems.add(RewardItemResponseDTO.of(effect));
-        savedItems.add(RewardItemResponseDTO.of(decoration));
-        savedItems.add(RewardItemResponseDTO.of(byeoltongCase));
-        savedItems.add(RewardItemResponseDTO.of(bgm));
-
-        return savedItems;
     }
 
     private UserItem makeUserItem(User user, RewardItem item) {
