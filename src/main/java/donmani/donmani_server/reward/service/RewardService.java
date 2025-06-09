@@ -212,34 +212,16 @@ public class RewardService {
             throw new IllegalArgumentException("유효하지 않은 요청입니다.");
         }
 
-        Optional<UserEquippedItem> equippedItem = userEquippedItemRepository.findTopByUserAndSavedAtInCurrentMonth(user.getId(), year, month);
-
         RewardItem updateBackground = rewardItemRepository.findById(request.getBackgroundId()).orElseThrow();
         RewardItem updateEffect = rewardItemRepository.findById(request.getEffectId()).orElseThrow();
         RewardItem updateDecoration = rewardItemRepository.findById(request.getDecorationId()).orElseThrow();
         RewardItem updateByeoltongCase = rewardItemRepository.findById(request.getByeoltongCaseId()).orElseThrow();
         RewardItem updateBgm = rewardItemRepository.findById(request.getBgmId()).orElseThrow();
 
-        if(equippedItem.isPresent()) {
-            UserEquippedItem presentEquippedItem = equippedItem.get();
-            presentEquippedItem.updateEquippedStatus(updateBackground, updateEffect, updateDecoration, updateByeoltongCase, updateBgm, now);
+        UserEquippedItem presentEquippedItem = userEquippedItemRepository.findTopByUserAndSavedAtInCurrentMonth(user.getId(), year, month).orElseThrow();
+        presentEquippedItem.updateEquippedStatus(updateBackground, updateEffect, updateDecoration, updateByeoltongCase, updateBgm, now);
 
-            userEquippedItemRepository.save(presentEquippedItem);
-        }
-        else {
-            UserEquippedItem newEquippedItem = UserEquippedItem.builder()
-                    .user(user)
-                    .background(updateBackground)
-                    .effect(updateEffect)
-                    .decoration(updateDecoration)
-                    .byeoltongCase(updateByeoltongCase)
-                    .bgm(updateBgm)
-                    .savedAt(now)
-                    .build();
-
-            userEquippedItemRepository.save(newEquippedItem);
-        }
-
+        userEquippedItemRepository.save(presentEquippedItem);
     }
 
     /**
