@@ -158,7 +158,7 @@ public class FeedbackService {
 				notOpenedFeedback.getTitle(),
 				notOpenedFeedback.getContent(),
 				notOpenedFeedback.getUser().getName(),
-				notOpenedFeedback.getExpense().getCategory(),
+				notOpenedFeedback.getExpense().getCategory() == null ? CategoryType.NONE : notOpenedFeedback.getExpense().getCategory(),
 				isToday);
 
 		return response;
