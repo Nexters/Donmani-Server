@@ -177,6 +177,15 @@ public class FeedbackTemplateProvider {
 			new FeedbackTemplate("실수에서 찾은 기준", "이 경험 덕분에 다음 선택은\n조금 더 선명해질 거야"),
 			new FeedbackTemplate("이건 나를 위한 과정", "실수한 날 자세히 기록해두자\n그래야 배운 과정이 보여\n")
 		));
+
+		// 무소비
+		templateMap.put(CategoryType.NONE, List.of(
+			new FeedbackTemplate("지름신 방어 완료!", "지갑 지켜낸 오늘,\n완전 뿌듯하지? 😎"),
+			new FeedbackTemplate("텐션 유지력 만렙", "안 써도\n기분 좋은 하루였어! 🙌"),
+			new FeedbackTemplate("습관 설계자 등장", "이렇게 하루하루 쌓으면\n진짜 바뀐다 ✨"),
+			new FeedbackTemplate("오늘도 잘 참았다!", "쉽지 않은 선택을 해낸\n너에게 박수! 👏👏"),
+			new FeedbackTemplate("오늘의 승자는 바로 너!", "의지력 무엇?!\n오늘도 성공! 🏆")
+		));
 	}
 
 	public List<FeedbackTemplate> getTemplates(CategoryType category) {
