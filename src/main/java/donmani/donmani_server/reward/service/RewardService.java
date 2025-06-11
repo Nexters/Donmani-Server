@@ -70,16 +70,18 @@ public class RewardService {
                 .filter(item -> !acquiredItems.contains(item))
                 .collect(Collectors.toList());
 
-        RewardItem selected = availableRewards.get(new Random().nextInt(availableRewards.size()));
+        if (!availableRewards.isEmpty()) {
+            RewardItem selected = availableRewards.get(new Random().nextInt(availableRewards.size()));
 
-        UserItem newUserItem = UserItem.builder()
+            UserItem newUserItem = UserItem.builder()
                 .user(user)
                 .item(selected)
                 .acquiredAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                 .isOpened(false)
                 .build();
 
-        userItemRepository.save(newUserItem);
+            userItemRepository.save(newUserItem);
+        }
     }
 
     /**

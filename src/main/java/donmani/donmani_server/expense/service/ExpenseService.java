@@ -74,9 +74,9 @@ public class ExpenseService {
 
 		expenseRepository.saveAll(expenses);
 
-		// 피드백 카드 / 선물 받기
+		// 피드백 카드 받기 & 선물 받기
 		feedbackService.addFeedback(request);
-		feedbackService.openFeedback(request.getUserKey());
+		feedbackService.openFeedback(request);
 		rewardService.acquireRandomItems(request.getUserKey(), request.getRecords().get(0).getDate());
 	}
 
