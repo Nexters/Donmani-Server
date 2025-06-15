@@ -33,18 +33,18 @@ public class UserEquippedItem {
     @ManyToOne
     private RewardItem byeoltongCase;
 
-    @ManyToOne
-    private RewardItem bgm;
+//    @ManyToOne
+//    private RewardItem bgm;
 
     private LocalDateTime savedAt;
 
     public void updateEquippedStatus(RewardItem background, RewardItem effect, RewardItem decoration,
-            RewardItem byeoltongCase, RewardItem bgm, LocalDateTime savedAt) {
+            RewardItem byeoltongCase, LocalDateTime savedAt) {
         this.background = background;
         this.effect = effect;
         this.decoration = decoration;
         this.byeoltongCase = byeoltongCase;
-        this.bgm = bgm;
+        //this.bgm = bgm;
         this.savedAt = savedAt;
     }
 }
