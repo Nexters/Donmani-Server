@@ -17,5 +17,5 @@ public class RewardItemSaveRequestDTO {
     private Long effectId;
     private Long decorationId;
     private Long byeoltongCaseId;
-    private Long bgmId;
+    //private Long bgmId;
 }
