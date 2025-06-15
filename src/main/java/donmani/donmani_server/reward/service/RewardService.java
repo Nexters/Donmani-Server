@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,9 +31,7 @@ public class RewardService {
     private final FeedbackRepository feedbackRepository;
     private final UserEquippedItemRepository userEquippedItemRepository;
 
-    private final static int MAX_REWARD = 19; // default item 5개는 카운트에 불포함
-
-    private final ConcurrentHashMap<String, Object> locks = new ConcurrentHashMap<>();
+    private final static int MAX_REWARD = 16; // default item 4개는 카운트에 불포함
 
     /**
      * 기록과 동시에 선물 획득
@@ -59,7 +56,7 @@ public class RewardService {
         List<UserItem> acquiredItems = userItemRepository.findByUserAndAcquiredAtBetweenOrderByAcquiredAtDesc(user, start, end);
 
         if(acquiredItems.size() == MAX_REWARD) {
-            // 인당 월 최대 14개의 선물 생성 가능
+            // 인당 월 최대 12개의 선물 생성 가능
             // throw new IllegalStateException("이번 달 받을 수 있는 선물 개수를 초과하였습니다.");
             return;
         }
@@ -216,10 +213,10 @@ public class RewardService {
         RewardItem updateEffect = rewardItemRepository.findById(request.getEffectId()).orElseThrow();
         RewardItem updateDecoration = rewardItemRepository.findById(request.getDecorationId()).orElseThrow();
         RewardItem updateByeoltongCase = rewardItemRepository.findById(request.getByeoltongCaseId()).orElseThrow();
-        RewardItem updateBgm = rewardItemRepository.findById(request.getBgmId()).orElseThrow();
+        // RewardItem updateBgm = rewardItemRepository.findById(request.getBgmId()).orElseThrow();
 
         UserEquippedItem presentEquippedItem = userEquippedItemRepository.findTopByUserAndSavedAtInCurrentMonth(user.getId(), year, month).orElseThrow();
-        presentEquippedItem.updateEquippedStatus(updateBackground, updateEffect, updateDecoration, updateByeoltongCase, updateBgm, now);
+        presentEquippedItem.updateEquippedStatus(updateBackground, updateEffect, updateDecoration, updateByeoltongCase, now);
 
         userEquippedItemRepository.save(presentEquippedItem);
     }
@@ -230,9 +227,7 @@ public class RewardService {
     @Transactional
     public List<RewardItemResponseDTO> getSavedItem(String userKey, int year, int month) {
         List<RewardItemResponseDTO> savedItems = new ArrayList<>();
-        RewardItem background = null, effect = null, decoration = null, byeoltongCase = null, bgm = null;
-
-        Object userLock = locks.computeIfAbsent(userKey, k -> new Object());
+        RewardItem background = null, effect = null, decoration = null, byeoltongCase = null;
 
         User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
@@ -245,14 +240,14 @@ public class RewardService {
             effect = presentSavedItem.getEffect();
             decoration = presentSavedItem.getDecoration();
             byeoltongCase = presentSavedItem.getByeoltongCase();
-            bgm = presentSavedItem.getBgm();
+            // bgm = presentSavedItem.getBgm();
         } else {
             // 꾸미기 저장 데이터 없으면 default 세팅
             background = rewardItemRepository.findById(1L).orElseThrow();
             effect = rewardItemRepository.findById(2L).orElseThrow();
             decoration = rewardItemRepository.findById(3L).orElseThrow();
             byeoltongCase = rewardItemRepository.findById(4L).orElseThrow();
-            bgm = rewardItemRepository.findById(5L).orElseThrow();
+            // bgm = rewardItemRepository.findById(5L).orElseThrow();
 
             // default 세팅으로 저장
             UserEquippedItem newEquippedItem = UserEquippedItem.builder()
@@ -261,7 +256,7 @@ public class RewardService {
                     .effect(effect)
                     .decoration(decoration)
                     .byeoltongCase(byeoltongCase)
-                    .bgm(bgm)
+                    //.bgm(bgm)
                     .savedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
                     .build();
 
@@ -272,14 +267,14 @@ public class RewardService {
             userItemRepository.save(makeUserItem(user, effect));
             userItemRepository.save(makeUserItem(user, decoration));
             userItemRepository.save(makeUserItem(user, byeoltongCase));
-            userItemRepository.save(makeUserItem(user, bgm));
+            // userItemRepository.save(makeUserItem(user, bgm));
         }
 
         savedItems.add(RewardItemResponseDTO.of(background));
         savedItems.add(RewardItemResponseDTO.of(effect));
         savedItems.add(RewardItemResponseDTO.of(decoration));
         savedItems.add(RewardItemResponseDTO.of(byeoltongCase));
-        savedItems.add(RewardItemResponseDTO.of(bgm));
+        // savedItems.add(RewardItemResponseDTO.of(bgm));
 
         return savedItems;
     }

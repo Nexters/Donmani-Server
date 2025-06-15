@@ -26,8 +26,8 @@ public class RewardItem {
     @Column
     private String jsonUrl;
 
-    @Column
-    private String mp3Url;
+//    @Column
+//    private String mp3Url;
 
     @Column
     private String thumbnailUrl;

@@ -5,7 +5,7 @@ public enum RewardCategory {
     EFFECT("효과"),
     DECORATION("장식"),
     CASE("별통이"),
-    BGM("배경음악"),
+    //BGM("배경음악"),
     ;
 
     private String name;

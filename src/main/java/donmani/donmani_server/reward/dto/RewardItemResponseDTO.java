@@ -20,7 +20,7 @@ public class RewardItemResponseDTO {
     @Schema(description = "리워드 아이템 이미지/gif URL", example = "하트 잔잔")
     private String imageUrl;
     private String jsonUrl;
-    private String mp3Url;
+    //private String mp3Url;
     private String thumbnailUrl;
     private RewardCategory category;
     private boolean isHidden;
@@ -40,9 +40,9 @@ public class RewardItemResponseDTO {
         response.setJsonUrl(
                 rewardItem.getJsonUrl() != null ? prefix + rewardItem.getJsonUrl() : null
         );
-        response.setMp3Url(
-                rewardItem.getMp3Url() != null ? prefix + rewardItem.getMp3Url() : null
-        );
+//        response.setMp3Url(
+//                rewardItem.getMp3Url() != null ? prefix + rewardItem.getMp3Url() : null
+//        );
         response.setThumbnailUrl(
                 rewardItem.getThumbnailUrl() != null ? prefix + rewardItem.getThumbnailUrl() : null
         );
@@ -65,9 +65,9 @@ public class RewardItemResponseDTO {
         response.setJsonUrl(
                 rewardItem.getJsonUrl() != null ? prefix + rewardItem.getJsonUrl() : null
         );
-        response.setMp3Url(
-                rewardItem.getMp3Url() != null ? prefix + rewardItem.getMp3Url() : null
-        );
+//        response.setMp3Url(
+//                rewardItem.getMp3Url() != null ? prefix + rewardItem.getMp3Url() : null
+//        );
         response.setThumbnailUrl(
                 rewardItem.getThumbnailUrl() != null ? prefix + rewardItem.getThumbnailUrl() : null
         );
