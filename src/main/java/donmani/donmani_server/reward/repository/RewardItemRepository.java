@@ -11,6 +11,6 @@ public interface RewardItemRepository extends JpaRepository<RewardItem, Long> {
     @Query("SELECT r FROM RewardItem r WHERE r.isHidden = true ORDER BY r.id ASC")
     Optional<RewardItem> findFirstByHiddenTrue();
 
-    @Query("SELECT r FROM RewardItem r WHERE r.isHidden = false")
-    List<RewardItem> findAllVisibleItems();
+    @Query("SELECT r FROM RewardItem r WHERE r.isHidden = false AND r.id NOT IN (1, 2, 3, 4)")
+    List<RewardItem> findAllVisibleItemsExcludingDefaults();
 }
