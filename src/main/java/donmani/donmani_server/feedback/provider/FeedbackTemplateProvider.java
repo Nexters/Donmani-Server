@@ -18,20 +18,20 @@ public class FeedbackTemplateProvider {
 	public void init() {
 		// 활력
 		templateMap.put(CategoryType.ENERGY, List.of(
-			new FeedbackTemplate("오늘 텐션 충전 완료!", "이 소비로 오늘 텐션\n바뀌었겠는데! 😊"),
+			new FeedbackTemplate("텐션 충전 완료!", "이 소비로 텐션\n바뀌었겠는데! 😊"),
 			new FeedbackTemplate("기분 전환 성공", "기운 빠질 땐 이런 소비\n하나쯤 괜찮지! 😆"),
-			new FeedbackTemplate("분위기 메이커 등판", "잘했어, 오늘 기분전환\n제대로 했겠다 🥳"),
-			new FeedbackTemplate("한숨 돌릴 타이밍", "덕분에 오늘 텐션 좀\n올라갔을 듯?"),
-			new FeedbackTemplate("온도 1도 상승 중", "작은 소비 하나가\n오늘의 쉼표가 됐어!")
+			new FeedbackTemplate("분위기 메이커 등판", "잘했어, 기분전환\n제대로 했겠다 🥳"),
+			new FeedbackTemplate("한숨 돌릴 타이밍", "덕분에 텐션 좀\n올라갔을 듯?"),
+			new FeedbackTemplate("온도 1도 상승 중", "작은 소비 하나가\n하루의 쉼표가 됐어!")
 		));
 
 		// 성장
 		templateMap.put(CategoryType.GROWTH, List.of(
-			new FeedbackTemplate("작지만 좋은 선택", "'도전'이라는 단어가\n잘 어울리는 선택이었어"),
-			new FeedbackTemplate("내안의 지분", "망설이지 않고 나를 위한\n선택이라니, 잘했어 😌"),
+			new FeedbackTemplate("소비 너머의 성장", "분명 나를 위한\n선택이었으니까 ☺️"),
+			new FeedbackTemplate("내안의 지분", "필요한 곳에 잘 썻어,\n그게 진정한 성장이지 😌"),
 			new FeedbackTemplate("시간이 모여 나를 만든다", "이게 스스로한테\n투자인거지 😆"),
 			new FeedbackTemplate("천천히 쌓아가는 나", "하나하나 쌓다 보면,\n그게 또 보람이지 ☺️"),
-			new FeedbackTemplate("속도가 다는 아니니까", "오늘 한 걸음도 꽤 괜찮았어.\n계속 이렇게만 가자 ☺️")
+			new FeedbackTemplate("속도가 다는 아니니까", "눈에 안보여도\n분명 나아지고 있어 ☺️")
 		));
 
 		// 힐링
@@ -45,17 +45,17 @@ public class FeedbackTemplateProvider {
 
 		// 소확행
 		templateMap.put(CategoryType.HAPPINESS, List.of(
-			new FeedbackTemplate("이 순간이 오늘을 살렸어", "나만 아는 행복이었던 것 같아,\n그래서 더 소중해 💛"),
+			new FeedbackTemplate("이 순간이 하루를 살렸어", "나만 아는 행복이었던 것 같아,\n그래서 더 소중해 💛"),
 			new FeedbackTemplate("작지만 마음은 꽉 찼어", "크지 않아도 충분히\n가치 있는 소비였어! 😆"),
 			new FeedbackTemplate("이거 하나로 웃었잖아", "정말 별거 아니었지만,\n나를 웃게 했지 😆"),
-			new FeedbackTemplate("오늘, 괜히 기분 좋았어", "이런 거 하나로 기분 괜히\n좋아지잖아. 행복 했으면 됐어 ☺️"),
-			new FeedbackTemplate("작아도 충분한 위로", "오늘 하루를 포근하게\n만든 소비였어 ☺️")
+			new FeedbackTemplate("괜히 기분 좋았어", "이런 거 하나로 기분 괜히\n좋아지잖아. 행복 했으면 됐어 ☺️"),
+			new FeedbackTemplate("작아도 충분한 위로", "이 소비로 하루를\n포근하게 만들어줬겠다! ☺️")
 		));
 
 		// 픞렉스
 		templateMap.put(CategoryType.FLEX, List.of(
 			new FeedbackTemplate("나를 위해 질렀다!", "이런 날도 있어야지.\n행복했으면 된 거야~ ☺️"),
-			new FeedbackTemplate("후회 없는 멋진 소비", "오늘 좀 멋있었다.\n잘 샀다! 😆"),
+			new FeedbackTemplate("후회 없는 멋진 소비", "이 순간 좀 멋있었다.\n잘 샀다! 😆"),
 			new FeedbackTemplate("기준 있는 선택, 칭찬해!", "고민 없이 질렀다면, 그만큼\n가치 있었던 거지 뭐 😆"),
 			new FeedbackTemplate("내 마음을 위한 투자", "망설임 없이 선택했던 이유가\n무엇이었을까? ☺️"),
 			new FeedbackTemplate("이 순간을 위해", "이 순간을 위해 참아온 거잖아\n잘했어! 😉")
@@ -63,11 +63,11 @@ public class FeedbackTemplateProvider {
 
 		// 품위유지
 		templateMap.put(CategoryType.DIGNITY, List.of(
-			new FeedbackTemplate("오늘은 나를 돌본 날", "오늘은 스스로를 다듬는\n멋진 시간이었지"),
+			new FeedbackTemplate("나를 돌본 날", "스스로를 다듬는\n멋진 시간이었지"),
 			new FeedbackTemplate("기준 있는 선택, 칭찬해!", "선택 하나에도 너다운\n기준이 보이네 😊"),
 			new FeedbackTemplate("아껴둔 나만의 센스", "지나치지 않고 딱 맞게 썼잖아\n그 센스, 누구보다 너 자신을\n위한 거였어 ✨"),
 			new FeedbackTemplate("내가 나를 다듬는 시간", "‘아깝다’보다 ‘잘 챙겼다’가 먼저\n생각이 드는 날이네! ☺️"),
-			new FeedbackTemplate("딱 나에게 맞게", "꼭 나에게 맞는 걸 골랐잖아\n오늘의 중심엔 내가 있었네 😊")
+			new FeedbackTemplate("딱 나에게 맞게", "꼭 나에게 맞는 걸 골랐잖아\n하루의 중심엔 내가 있었네 😊")
 		));
 
 		// 마음전달
@@ -82,9 +82,9 @@ public class FeedbackTemplateProvider {
 		// 건강
 		templateMap.put(CategoryType.HEALTH, List.of(
 			new FeedbackTemplate("스스로에게 준 선물", "단순한 구매가 아니라,\n나를 돌보는 결정이었어 😊"),
-			new FeedbackTemplate("오늘도 나를 챙긴 하루", "스스로를 소중히 여기는\n마음이 담겨 있지 😊"),
-			new FeedbackTemplate("미래의 나를 위해", "오늘 선택, 미래의 내가\n고마워할지도 😆"),
-			new FeedbackTemplate("나를 아껴주는 결심", "몸도 마음도, 오늘은 진짜\n챙길 수 있었던 날! ☺️"),
+			new FeedbackTemplate("나를 챙긴 하루", "스스로를 소중히 여기는\n마음이 담겨 있지 😊"),
+			new FeedbackTemplate("미래의 나를 위해", "이 선택, 미래의 내가\n고마워할지도 😆"),
+			new FeedbackTemplate("나를 아껴주는 결심", "몸도 마음도\n챙길 수 있었던 날! ☺️"),
 			new FeedbackTemplate("나를 위한 다정한 투자", "꾸준히 스스로를 챙기는 너,\n진짜 멋져! ☺️")
 		));
 
@@ -93,7 +93,7 @@ public class FeedbackTemplateProvider {
 			new FeedbackTemplate("잘 아낌도 멋진 선택", "내가 나를 조율한 선택이었지,\n충분히 잘했어 😊"),
 			new FeedbackTemplate("똑똑하게 소비했다", "쓸 땐 쓰고, 아낄 땐 아끼는 게\n제일 어려운 건데 잘했어! 😆"),
 			new FeedbackTemplate("절약에도 기준이 있다면", "생각보다 똑똑하게 잘 고른\n소비였던 거 같지? 😆"),
-			new FeedbackTemplate("이건 절제 속 만족이야", "절약에 대해 고민한 오늘,\n분명 더 단단해졌을 거야. ☺️"),
+			new FeedbackTemplate("이건 절제 속 만족이야", "절약에 대한 고민,\n분명 더 단단해졌을 거야. ☺️"),
 			new FeedbackTemplate("덜 쓰고도 충분했던 하루", "절약도 나를 위한 하나의 습관이\n되어가고 있어 ☺️")
 		));
 
@@ -165,7 +165,7 @@ public class FeedbackTemplateProvider {
 			new FeedbackTemplate("덜 쓴다고 다 좋진 않아", "지혜로운 소비는 나를 존중하는\n방법일 수 있어! 🥲"),
 			new FeedbackTemplate("이건 절약이었을까", "과하게 절약하다 마음까지 조인 건\n아니었는지 생각해봐"),
 			new FeedbackTemplate("절약은 균형에서부터", "절약도 과하지 않도록\n조율해보는 거야! 🧐"),
-			new FeedbackTemplate("잘 참은 건 맞을까", "오늘 참은 이유,\n너를 위한 거였으면 좋겠다! 🥺"),
+			new FeedbackTemplate("잘 참은 건 맞을까", "참은 이유,\n너를 위한 거였으면 좋겠다! 🥺"),
 			new FeedbackTemplate("참고도 후회했어", "너무 아끼다가 나까지\n아껴버리진 않았는지 돌아봐")
 		));
 
