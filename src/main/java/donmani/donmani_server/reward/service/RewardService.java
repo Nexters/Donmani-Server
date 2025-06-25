@@ -1,5 +1,6 @@
 package donmani.donmani_server.reward.service;
 
+import donmani.donmani_server.common.exception.HiddenItemAlreadyOpenedException;
 import donmani.donmani_server.feedback.entity.Feedback;
 import donmani.donmani_server.feedback.repository.FeedbackRepository;
 import donmani.donmani_server.reward.dto.HiddenUpdateRequestDTO;
@@ -202,7 +203,8 @@ public class RewardService {
     public void updateHiddenRead(HiddenUpdateRequestDTO request) {
         User user = userRepository.findByUserKey(request.getUserKey()).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
-        UserItem findItem = userItemRepository.findOneUnopenedHiddenItem(user, request.getYear(), request.getMonth()).orElseThrow();
+        UserItem findItem = userItemRepository.findOneUnopenedHiddenItem(user, request.getYear(), request.getMonth())
+                .orElseThrow(HiddenItemAlreadyOpenedException::new);
 
         findItem.setOpened(true);
 
