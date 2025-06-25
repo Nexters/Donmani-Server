@@ -180,11 +180,11 @@ public class FeedbackTemplateProvider {
 
 		// 무소비
 		templateMap.put(CategoryType.NONE, List.of(
-			new FeedbackTemplate("지름신 방어 완료!", "지갑 지켜낸 오늘,\n완전 뿌듯하지? 😎"),
+			new FeedbackTemplate("지름신 방어 완료!", "지갑 지켜낸 하루,\n완전 뿌듯하지? 😎"),
 			new FeedbackTemplate("텐션 유지력 만렙", "안 써도\n기분 좋은 하루였어! 🙌"),
 			new FeedbackTemplate("습관 설계자 등장", "이렇게 하루하루 쌓으면\n진짜 바뀐다 ✨"),
-			new FeedbackTemplate("오늘도 잘 참았다!", "쉽지 않은 선택을 해낸\n너에게 박수! 👏👏"),
-			new FeedbackTemplate("오늘의 승자는 바로 너!", "의지력 무엇?!\n오늘도 성공! 🏆")
+			new FeedbackTemplate("이번에도 잘 참았다!", "쉽지 않은 선택을 해낸\n너에게 박수! 👏👏"),
+			new FeedbackTemplate("승자는 바로 너!", "의지력 무엇?!\n지갑 지키기 성공! 🏆")
 		));
 	}
 
