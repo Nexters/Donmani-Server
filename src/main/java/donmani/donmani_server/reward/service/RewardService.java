@@ -144,7 +144,7 @@ public class RewardService {
                     .user(user)
                     .item(hiddenItem)
                     .acquiredAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
-                    .isOpened(false)
+                    .isOpened(true)
                     .build();
             userItemRepository.save(newUserItem);
         }
