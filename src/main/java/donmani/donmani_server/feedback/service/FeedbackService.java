@@ -1,14 +1,18 @@
 package donmani.donmani_server.feedback.service;
 
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import donmani.donmani_server.expense.entity.CategoryType;
 import donmani.donmani_server.expense.repository.ExpenseRepository;
+import donmani.donmani_server.reward.entity.UserItem;
+import donmani.donmani_server.reward.repository.UserItemRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +36,7 @@ public class FeedbackService {
 	private final ExpenseRepository expenseRepository;
 	private final FeedbackRepository feedbackRepository;
 	private final FeedbackTemplateProvider feedbackTemplateProvider;
+	private final UserItemRepository userItemRepository;
 
 	@Transactional
 	public void addFeedback(ExpenseRequestDTO requestDTO) {
@@ -82,6 +87,17 @@ public class FeedbackService {
 			return false;
 		}
 
+		// 3. 이미 12개를 모두 열었다면 isNotOpened를 false로
+		LocalDateTime start = YearMonth.now(ZoneId.of("Asia/Seoul")).atDay(1).atStartOfDay();
+		LocalDateTime end = start.plusMonths(1).minusNanos(1); // 23:59:59.999999999
+
+		List<UserItem> acquiredItems = userItemRepository.findByUserAndAcquiredAtBetweenOrderByAcquiredAtDesc(user, start, end);
+
+		if(acquiredItems.size() == 12) {
+			return false;
+		}
+
+		// 4. 그 외는 true로 처리
 		return true;
 	}
 
