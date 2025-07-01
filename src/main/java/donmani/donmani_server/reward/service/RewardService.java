@@ -237,10 +237,23 @@ public class RewardService {
         RewardItem updateByeoltongCase = rewardItemRepository.findById(request.getByeoltongCaseId()).orElseThrow();
         // RewardItem updateBgm = rewardItemRepository.findById(request.getBgmId()).orElseThrow();
 
-        UserEquippedItem presentEquippedItem = userEquippedItemRepository.findTopByUserAndSavedAtInCurrentMonth(user.getId(), year, month).orElseThrow();
-        presentEquippedItem.updateEquippedStatus(updateBackground, updateEffect, updateDecoration, updateByeoltongCase, now);
+        Optional<UserEquippedItem> equippedItem = userEquippedItemRepository.findTopByUserAndSavedAtInCurrentMonth(user.getId(), year, month);
+        if(equippedItem.isPresent()) {
+            UserEquippedItem presentEquippedItem = equippedItem.get();
+            presentEquippedItem.updateEquippedStatus(updateBackground, updateEffect, updateDecoration, updateByeoltongCase, now);
+            userEquippedItemRepository.save(presentEquippedItem);
+        } else {
+            UserEquippedItem savedEquippedItem = UserEquippedItem.builder()
+                    .user(user)
+                    .savedAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
+                    .background(updateBackground)
+                    .decoration(updateDecoration)
+                    .effect(updateEffect)
+                    .byeoltongCase(updateByeoltongCase)
+                    .build();
+            userEquippedItemRepository.save(savedEquippedItem);
+        }
 
-        userEquippedItemRepository.save(presentEquippedItem);
     }
 
     /**
