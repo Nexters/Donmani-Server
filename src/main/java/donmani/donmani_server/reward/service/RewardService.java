@@ -256,12 +256,36 @@ public class RewardService {
             byeoltongCase = presentSavedItem.getByeoltongCase();
             // bgm = presentSavedItem.getBgm();
         } else {
-            // 꾸미기 저장 데이터 없으면 default
-            background = rewardItemRepository.findById(1L).orElseThrow();
-            effect = rewardItemRepository.findById(2L).orElseThrow();
-            decoration = rewardItemRepository.findById(3L).orElseThrow();
-            byeoltongCase = rewardItemRepository.findById(4L).orElseThrow();
-            // bgm = rewardItemRepository.findById(5L).orElseThrow();
+            // 기준 날짜보다 이전 날짜 중 가장 최근에 저장된 꾸미기 상태 불러오기
+            LocalDateTime beforeDate = LocalDateTime.of(year, month, 1, 0, 0);
+            Optional<UserEquippedItem> lastEquippedItem = userEquippedItemRepository.findTopBeforeDate(user.getId(), beforeDate);
+
+            // 있다면 불러오고 해당 상태로 해당 월에 저장
+            if(lastEquippedItem.isPresent()) {
+                UserEquippedItem presentSavedItem = savedItem.get();
+
+                background = presentSavedItem.getBackground();
+                effect = presentSavedItem.getEffect();
+                decoration = presentSavedItem.getDecoration();
+                byeoltongCase = presentSavedItem.getByeoltongCase();
+
+                UserEquippedItem savedEquippedItem = UserEquippedItem.builder()
+                        .user(user)
+                        .savedAt(beforeDate)
+                        .background(background)
+                        .decoration(decoration)
+                        .effect(effect)
+                        .byeoltongCase(byeoltongCase)
+                        .build();
+                userEquippedItemRepository.save(savedEquippedItem);
+            } else {
+                // 꾸미기 저장 데이터 없으면 default
+                background = rewardItemRepository.findById(1L).orElseThrow();
+                effect = rewardItemRepository.findById(2L).orElseThrow();
+                decoration = rewardItemRepository.findById(3L).orElseThrow();
+                byeoltongCase = rewardItemRepository.findById(4L).orElseThrow();
+                // bgm = rewardItemRepository.findById(5L).orElseThrow();
+            }
         }
 
         savedItems.add(RewardItemResponseDTO.of(background));
@@ -283,10 +307,7 @@ public class RewardService {
         User user = userRepository.findByUserKey(userKey)
             .orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
-        LocalDateTime start = YearMonth.now(ZoneId.of("Asia/Seoul")).atDay(1).atStartOfDay();
-        LocalDateTime end = start.plusMonths(1).minusNanos(1); // 23:59:59.999999999
-
-        List<UserItem> notOpenedItems = userItemRepository.findByUserAndAcquiredAtBetweenAndNotOpened(user, start, end);
+        List<UserItem> notOpenedItems = userItemRepository.findByUserNotOpened(user);
 
         return notOpenedItems == null || notOpenedItems.isEmpty() ? false : true;
     }
