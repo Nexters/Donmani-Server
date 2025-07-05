@@ -40,27 +40,15 @@ public class RewardService {
      */
     @Transactional
     public void acquireRandomItems(String userKey, LocalDate reqDate) {
-        ZonedDateTime nowInSeoul = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
-        LocalDate todayInSeoul = nowInSeoul.toLocalDate();
-
-        if(reqDate.getYear() != todayInSeoul.getYear() ||
-                reqDate.getMonthValue() != todayInSeoul.getMonthValue()) {
-            // 어제 기록이 지난달이면 선물 받으면 안됨.
-            return;
-        }
-
         User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
-        LocalDateTime start = YearMonth.now(ZoneId.of("Asia/Seoul")).atDay(1).atStartOfDay();
-        LocalDateTime end = start.plusMonths(1).minusNanos(1); // 23:59:59.999999999
-
-        List<UserItem> acquiredItems = userItemRepository.findByUserAndAcquiredAtBetweenOrderByAcquiredAtDesc(user, start, end);
+        List<UserItem> acquiredItems = userItemRepository.findByUserNotOpened(user);
         Set<Long> acquiredItemIds = acquiredItems.stream()
                 .map(userItem -> userItem.getItem().getId())
                 .collect(Collectors.toSet());
 
         if(acquiredItems.size() == MAX_REWARD) {
-            // 인당 월 최대 12개의 선물 생성 가능
+            // 인당 최대 12개의 선물 생성 가능
             return;
         }
 
@@ -94,10 +82,7 @@ public class RewardService {
     public int getNotOpenedItemSize(String userKey) {
         User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
-        LocalDateTime start = YearMonth.now(ZoneId.of("Asia/Seoul")).atDay(1).atStartOfDay();
-        LocalDateTime end = start.plusMonths(1).minusNanos(1); // 23:59:59.999999999
-
-        List<UserItem> notOpenedItems = userItemRepository.findByUserAndAcquiredAtBetweenAndNotOpened(user, start, end);
+        List<UserItem> notOpenedItems = userItemRepository.findByUserNotOpened(user);
 
         return notOpenedItems.size();
     }
@@ -110,15 +95,12 @@ public class RewardService {
     public List<RewardItemResponseDTO> openItems(String userKey) {
         User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
-        LocalDateTime start = YearMonth.now(ZoneId.of("Asia/Seoul")).atDay(1).atStartOfDay();
-        LocalDateTime end = start.plusMonths(1).minusNanos(1); // 23:59:59.999999999
-
         // 피드백 열기 (중간 이탈해도 피드백+선물 한 set으로 열기)
         Feedback notOpenedFeedback = feedbackRepository.findFeedbackByIsOpenedOrderByCreatedDateDesc(user.getId()).get(0);
         notOpenedFeedback.setOpened(true);
 
         // 선물 열기
-        List<UserItem> notOpenedItems = userItemRepository.findByUserAndAcquiredAtBetweenAndNotOpened(user, start, end);
+        List<UserItem> notOpenedItems = userItemRepository.findByUserNotOpened(user);
         for (UserItem item : notOpenedItems) {
             item.setOpened(true);
         }
@@ -127,7 +109,7 @@ public class RewardService {
         userItemRepository.saveAll(notOpenedItems);
 
         // 히든 아이템 획득
-        acquireHiddenItems(user, start, end);;
+        acquireHiddenItems(user);;
 
         List<RewardItemResponseDTO> response = new ArrayList<>();
         for (UserItem item : notOpenedItems) {
@@ -137,8 +119,8 @@ public class RewardService {
         return response;
     }
 
-    private void acquireHiddenItems(User user, LocalDateTime start, LocalDateTime end) {
-        List<UserItem> acquiredItems = userItemRepository.findByUserAndAcquiredAtBetweenOrderByAcquiredAtDesc(user, start, end);
+    private void acquireHiddenItems(User user) {
+        List<UserItem> acquiredItems = userItemRepository.findByUserOrderByAcquiredAtDesc(user);
         if(acquiredItems.size() == MAX_REWARD) {
             RewardItem hiddenItem = rewardItemRepository.findFirstByHiddenTrue().orElseThrow();
             UserItem newUserItem = UserItem.builder()
@@ -163,13 +145,10 @@ public class RewardService {
                 .orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
         ZoneId zoneId = ZoneId.of("Asia/Seoul");
-        LocalDateTime startOfMonth = YearMonth.now(zoneId).atDay(1).atStartOfDay();
-        LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusNanos(1);
         LocalDateTime threeDaysAgo = LocalDateTime.now(zoneId).minusDays(3);
 
-        // 유저가 해당 월 획득한 아이템
-        List<UserItem> acquiredItems = userItemRepository
-                .findByUserAndAcquiredAtBetweenOrderByAcquiredAtDesc(user, startOfMonth, endOfMonth);
+        // 유저가 획득한 아이템
+        List<UserItem> acquiredItems = userItemRepository.findByUserOrderByAcquiredAtDesc(user);
 
         // 기본 아이템 ID 목록
         List<Long> defaultItemIds = List.of(1L, 2L, 3L, 4L);
@@ -277,12 +256,36 @@ public class RewardService {
             byeoltongCase = presentSavedItem.getByeoltongCase();
             // bgm = presentSavedItem.getBgm();
         } else {
-            // 꾸미기 저장 데이터 없으면 default
-            background = rewardItemRepository.findById(1L).orElseThrow();
-            effect = rewardItemRepository.findById(2L).orElseThrow();
-            decoration = rewardItemRepository.findById(3L).orElseThrow();
-            byeoltongCase = rewardItemRepository.findById(4L).orElseThrow();
-            // bgm = rewardItemRepository.findById(5L).orElseThrow();
+            // 기준 날짜보다 이전 날짜 중 가장 최근에 저장된 꾸미기 상태 불러오기
+            LocalDateTime beforeDate = LocalDateTime.of(year, month, 1, 0, 0);
+            Optional<UserEquippedItem> lastEquippedItem = userEquippedItemRepository.findLeastBeforeDate(user.getId(), beforeDate);
+
+            // 있다면 불러오고 해당 상태로 해당 월에 저장
+            if(lastEquippedItem.isPresent()) {
+                UserEquippedItem presentSavedItem = savedItem.get();
+
+                background = presentSavedItem.getBackground();
+                effect = presentSavedItem.getEffect();
+                decoration = presentSavedItem.getDecoration();
+                byeoltongCase = presentSavedItem.getByeoltongCase();
+
+                UserEquippedItem savedEquippedItem = UserEquippedItem.builder()
+                        .user(user)
+                        .savedAt(beforeDate)
+                        .background(background)
+                        .decoration(decoration)
+                        .effect(effect)
+                        .byeoltongCase(byeoltongCase)
+                        .build();
+                userEquippedItemRepository.save(savedEquippedItem);
+            } else {
+                // 꾸미기 저장 데이터 없으면 default
+                background = rewardItemRepository.findById(1L).orElseThrow();
+                effect = rewardItemRepository.findById(2L).orElseThrow();
+                decoration = rewardItemRepository.findById(3L).orElseThrow();
+                byeoltongCase = rewardItemRepository.findById(4L).orElseThrow();
+                // bgm = rewardItemRepository.findById(5L).orElseThrow();
+            }
         }
 
         savedItems.add(RewardItemResponseDTO.of(background));
@@ -304,10 +307,7 @@ public class RewardService {
         User user = userRepository.findByUserKey(userKey)
             .orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
-        LocalDateTime start = YearMonth.now(ZoneId.of("Asia/Seoul")).atDay(1).atStartOfDay();
-        LocalDateTime end = start.plusMonths(1).minusNanos(1); // 23:59:59.999999999
-
-        List<UserItem> notOpenedItems = userItemRepository.findByUserAndAcquiredAtBetweenAndNotOpened(user, start, end);
+        List<UserItem> notOpenedItems = userItemRepository.findByUserNotOpened(user);
 
         return notOpenedItems == null || notOpenedItems.isEmpty() ? false : true;
     }
