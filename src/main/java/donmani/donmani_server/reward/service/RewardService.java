@@ -258,7 +258,7 @@ public class RewardService {
         } else {
             // 기준 날짜보다 이전 날짜 중 가장 최근에 저장된 꾸미기 상태 불러오기
             LocalDateTime beforeDate = LocalDateTime.of(year, month, 1, 0, 0);
-            Optional<UserEquippedItem> lastEquippedItem = userEquippedItemRepository.findTopBeforeDate(user.getId(), beforeDate);
+            Optional<UserEquippedItem> lastEquippedItem = userEquippedItemRepository.findLeastBeforeDate(user.getId(), beforeDate);
 
             // 있다면 불러오고 해당 상태로 해당 월에 저장
             if(lastEquippedItem.isPresent()) {

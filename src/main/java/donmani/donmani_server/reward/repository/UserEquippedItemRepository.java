@@ -27,7 +27,7 @@ public interface UserEquippedItemRepository extends JpaRepository<UserEquippedIt
             "AND e.saved_at < :beforeDate " +
             "ORDER BY e.saved_at DESC " +
             "LIMIT 1", nativeQuery = true)
-    Optional<UserEquippedItem> findTopBeforeDate(
+    Optional<UserEquippedItem> findLeastBeforeDate(
             @Param("userId") Long userId,
             @Param("beforeDate") LocalDateTime beforeDate
     );
