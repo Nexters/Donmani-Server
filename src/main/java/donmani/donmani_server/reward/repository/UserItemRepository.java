@@ -11,17 +11,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserItemRepository extends JpaRepository<UserItem, Long> {
-
-    @Query("SELECT ui FROM UserItem ui " +
-            "WHERE ui.user = :user " +
-            "AND ui.acquiredAt BETWEEN :start AND :end " +
-            "ORDER BY ui.acquiredAt DESC")
-    List<UserItem> findByUserAndAcquiredAtBetweenOrderByAcquiredAtDesc(
-            @Param("user") User user,
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end
-    );
-
     @Query("SELECT ui FROM UserItem ui " +
             "WHERE ui.user = :user " +
             "ORDER BY ui.acquiredAt DESC")
@@ -36,6 +25,11 @@ public interface UserItemRepository extends JpaRepository<UserItem, Long> {
             @Param("user") User user
     );
 
+    @Query("SELECT ui FROM UserItem ui " +
+            "WHERE ui.user = :user ")
+    List<UserItem> findAllByUser(
+            @Param("user") User user
+    );
 
     @Query("SELECT ui FROM UserItem ui " +
             "JOIN ui.item i " +
