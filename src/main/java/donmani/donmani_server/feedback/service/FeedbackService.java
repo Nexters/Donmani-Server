@@ -88,10 +88,7 @@ public class FeedbackService {
 		}
 
 		// 3. 이미 12개를 모두 열었다면 isNotOpened를 false로
-		LocalDateTime start = YearMonth.now(ZoneId.of("Asia/Seoul")).atDay(1).atStartOfDay();
-		LocalDateTime end = start.plusMonths(1).minusNanos(1); // 23:59:59.999999999
-
-		List<UserItem> acquiredItems = userItemRepository.findByUserAndAcquiredAtBetweenOrderByAcquiredAtDesc(user, start, end);
+		List<UserItem> acquiredItems = userItemRepository.findAllByUser(user);
 
 		if(acquiredItems.size() == 12) {
 			return false;

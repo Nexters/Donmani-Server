@@ -42,7 +42,7 @@ public class RewardService {
     public void acquireRandomItems(String userKey, LocalDate reqDate) {
         User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
-        List<UserItem> acquiredItems = userItemRepository.findByUserNotOpened(user);
+        List<UserItem> acquiredItems = userItemRepository.findAllByUser(user);
         Set<Long> acquiredItemIds = acquiredItems.stream()
                 .map(userItem -> userItem.getItem().getId())
                 .collect(Collectors.toSet());
@@ -120,7 +120,7 @@ public class RewardService {
     }
 
     private void acquireHiddenItems(User user) {
-        List<UserItem> acquiredItems = userItemRepository.findByUserOrderByAcquiredAtDesc(user);
+        List<UserItem> acquiredItems = userItemRepository.findAllByUser(user);
         if(acquiredItems.size() == MAX_REWARD) {
             RewardItem hiddenItem = rewardItemRepository.findFirstByHiddenTrue().orElseThrow();
             UserItem newUserItem = UserItem.builder()
@@ -134,7 +134,7 @@ public class RewardService {
     }
 
     /**
-     * 꾸미기 탭 접속하여 아이템 리스트 조회 (해당월)
+     * 꾸미기 탭 접속하여 아이템 리스트 조회
      * 전체 아이템 및 획득 아이템 표시
      * @param userKey
      * @return
