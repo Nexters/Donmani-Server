@@ -262,7 +262,7 @@ public class RewardService {
 
             // 있다면 불러오고 해당 상태로 해당 월에 저장
             if(lastEquippedItem.isPresent()) {
-                UserEquippedItem presentSavedItem = savedItem.get();
+                UserEquippedItem presentSavedItem = lastEquippedItem.get();
 
                 background = presentSavedItem.getBackground();
                 effect = presentSavedItem.getEffect();
