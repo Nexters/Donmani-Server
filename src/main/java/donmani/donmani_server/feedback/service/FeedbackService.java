@@ -88,7 +88,7 @@ public class FeedbackService {
 		}
 
 		// 3. 이미 12개를 모두 열었다면 isNotOpened를 false로
-		List<UserItem> acquiredItems = userItemRepository.findAllByUser(user);
+		List<UserItem> acquiredItems = userItemRepository.findByUserOrderByAcquiredAtDesc(user);
 
 		if(acquiredItems.size() == 12) {
 			return false;
