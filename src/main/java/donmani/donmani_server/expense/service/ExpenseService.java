@@ -95,12 +95,16 @@ public class ExpenseService {
 		// 오픈하지 않은 선물 여부 확인
 		boolean hasNotOpenedRewards = rewardService.hasNotOpenedRewards(userKey);
 
+		// 현재 기록 개수 확인
+		Integer totalExpensesCount = getTotalExpensesCount(userKey);
+
 		if(expenses.isEmpty()) {
 			return ExpenseResponseDTO.builder()
 					.userKey(userKey)
 					.records(null)
 					.saveItems(rewardService.getSavedItem(userKey, year, month))
 					.hasNotOpenedRewards(hasNotOpenedRewards)
+					.totalExpensesCount(totalExpensesCount)
 					.build();
 		}
 
@@ -109,6 +113,7 @@ public class ExpenseService {
 			.records(expenseToDto(expenses, sortedDesc))
 			.saveItems(rewardService.getSavedItem(userKey, year, month))
 			.hasNotOpenedRewards(hasNotOpenedRewards)
+			.totalExpensesCount(totalExpensesCount)
 			.build();
 	}
 

@@ -19,4 +19,5 @@ public class ExpenseResponseDTO {
 	private List<RecordDTO> records;
 	private List<RewardItemResponseDTO> saveItems;
 	private boolean hasNotOpenedRewards;
+	private Integer totalExpensesCount;
 }
