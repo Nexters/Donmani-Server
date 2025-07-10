@@ -96,7 +96,7 @@ public class ExpenseService {
 		boolean hasNotOpenedRewards = rewardService.hasNotOpenedRewards(userKey);
 
 		// 현재 기록 개수 확인
-		int totalExpensesCount = getTotalExpensesCount(userKey);
+		Integer totalExpensesCount = getTotalExpensesCount(userKey);
 
 		if(expenses.isEmpty()) {
 			return ExpenseResponseDTO.builder()
