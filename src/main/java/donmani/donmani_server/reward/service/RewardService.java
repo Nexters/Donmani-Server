@@ -93,6 +93,8 @@ public class RewardService {
      */
     @Transactional
     public List<RewardItemResponseDTO> openItems(String userKey) {
+        LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+
         User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
         // 피드백 열기 (중간 이탈해도 피드백+선물 한 set으로 열기)
@@ -105,11 +107,18 @@ public class RewardService {
             item.setOpened(true);
         }
 
+        // 선물 열기 후 꾸미기 레드닷 노출을 위해 false 세팅
+        if (!notOpenedItems.isEmpty()) {
+            user.setRewardChecked(false);
+            user.setUpdateDate(localDateTime);
+        }
+
         feedbackRepository.save(notOpenedFeedback);
         userItemRepository.saveAll(notOpenedItems);
+        userRepository.save(user);
 
         // 히든 아이템 획득
-        acquireHiddenItems(user);;
+        acquireHiddenItems(user);
 
         List<RewardItemResponseDTO> response = new ArrayList<>();
         for (UserItem item : notOpenedItems) {
