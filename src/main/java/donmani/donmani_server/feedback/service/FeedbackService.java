@@ -87,12 +87,16 @@ public class FeedbackService {
 			return false;
 		}
 
+		/* *
+		 * BUG: 열지 않은 피드백 카드가 존재하더라도, 해당 로직으로 인해 false가 반환
+		 *      불필요한 로직으로 판단되어 로직 제거
+		 */
 		// 3. 이미 12개를 모두 열었다면 isNotOpened를 false로
-		List<UserItem> acquiredItems = userItemRepository.findByUserOrderByAcquiredAtDesc(user);
-
-		if(acquiredItems.size() == 12) {
-			return false;
-		}
+		// List<UserItem> acquiredItems = userItemRepository.findByUserOrderByAcquiredAtDesc(user);
+		//
+		// if(acquiredItems.size() == 12) {
+		// 	return false;
+		// }
 
 		// 4. 그 외는 true로 처리
 		return true;
