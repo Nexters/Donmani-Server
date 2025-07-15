@@ -127,7 +127,7 @@ public class RewardService {
                     .user(user)
                     .item(hiddenItem)
                     .acquiredAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
-                    .isOpened(true)
+                    .isOpened(false)
                     .build();
             userItemRepository.save(newUserItem);
         }
@@ -182,8 +182,7 @@ public class RewardService {
     public void updateHiddenRead(HiddenUpdateRequestDTO request) {
         User user = userRepository.findByUserKey(request.getUserKey()).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
-        UserItem findItem = userItemRepository.findOneUnopenedHiddenItem(user, request.getYear(), request.getMonth())
-                .orElseThrow(HiddenItemAlreadyOpenedException::new);
+        UserItem findItem = userItemRepository.findOneUnopenedHiddenItem(user).orElseThrow(HiddenItemAlreadyOpenedException::new);
 
         findItem.setOpened(true);
 
