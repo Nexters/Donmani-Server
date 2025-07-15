@@ -109,7 +109,7 @@ public class RewardService {
         userItemRepository.saveAll(notOpenedItems);
 
         // 히든 아이템 획득
-        acquireHiddenItems(user);;
+        acquireHiddenItems(user);
 
         List<RewardItemResponseDTO> response = new ArrayList<>();
         for (UserItem item : notOpenedItems) {
@@ -123,11 +123,15 @@ public class RewardService {
         List<UserItem> acquiredItems = userItemRepository.findAllByUser(user);
         if(acquiredItems.size() == MAX_REWARD) {
             RewardItem hiddenItem = rewardItemRepository.findFirstByHiddenTrue().orElseThrow();
+
+            // 히든 아이템 획득 시 isOpened 값을 활용하여 isHiddenRead 값을 판별
+            boolean isHiddenRead = false;
+
             UserItem newUserItem = UserItem.builder()
                     .user(user)
                     .item(hiddenItem)
                     .acquiredAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")))
-                    .isOpened(false)
+                    .isOpened(isHiddenRead)
                     .build();
             userItemRepository.save(newUserItem);
         }
@@ -156,21 +160,22 @@ public class RewardService {
         // 기본 아이템들을 DTO로 변환
         List<RewardItemResponseDTO> response = defaultItemIds.stream()
                 .map(id -> rewardItemRepository.findById(id)
-                        .map(item -> RewardItemResponseDTO.of(item, false))
+                        .map(item -> RewardItemResponseDTO.of(item, false, false))
                         .orElseThrow(() -> new RuntimeException("Default item ID " + id + " not found")))
                 .collect(Collectors.toList());
 
         response.addAll(
                 acquiredItems.stream()
                 .map(item -> {
-                    // 3일 이내 획득한 Item
+                    // 1) 3일 이내 획득한 아이템은 newAcquiredFlag가 활성화
                     boolean newAcquired = item.getAcquiredAt().isAfter(threeDaysAgo);
-                    // Hidden 아이템 처음 받았는지 여부
-                    if(item.getItem().isHidden() && !item.isOpened()) {
-                        newAcquired = true;
-                    }
 
-                    return RewardItemResponseDTO.of(item.getItem(), newAcquired);
+                    // 2) Hidden 아이템을 받고 바텀시트가 출력되었는지 여부는 isOpened로 판별
+                    // 초기 상태는 false
+                    // 2-1) 히든 아이템의 isOpened가 true 라면 바텀시트가 1회 이상 출력된 것
+                    boolean isHiddenRead = item.isOpened();
+
+                    return RewardItemResponseDTO.of(item.getItem(), newAcquired, isHiddenRead);
                 }).collect(Collectors.toList())
         );
 
