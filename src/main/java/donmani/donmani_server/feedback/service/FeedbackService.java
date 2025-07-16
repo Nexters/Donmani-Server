@@ -1,12 +1,10 @@
 package donmani.donmani_server.feedback.service;
 
 import java.time.LocalDateTime;
-import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import donmani.donmani_server.expense.entity.CategoryType;
@@ -18,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import donmani.donmani_server.expense.dto.ExpenseRequestDTO;
 import donmani.donmani_server.expense.entity.Expense;
-import donmani.donmani_server.expense.service.ExpenseService;
 import donmani.donmani_server.feedback.dto.FeedbackOpenResponseDTO;
 import donmani.donmani_server.feedback.provider.FeedbackTemplate;
 import donmani.donmani_server.feedback.provider.FeedbackTemplateProvider;
@@ -26,7 +23,6 @@ import donmani.donmani_server.user.entity.User;
 import donmani.donmani_server.user.service.UserService;
 import donmani.donmani_server.feedback.entity.Feedback;
 import donmani.donmani_server.feedback.repository.FeedbackRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service

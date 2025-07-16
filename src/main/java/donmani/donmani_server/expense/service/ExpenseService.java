@@ -134,31 +134,6 @@ public class ExpenseService {
 				.sorted(sortedDesc ? Comparator.comparing(RecordDTO::getDate).reversed() : Comparator.comparing(RecordDTO::getDate))
 				.collect(Collectors.toList());
 	}
-	// 미사용
-	@Transactional(readOnly = true)
-	public ExpenseResponseDTO getAllExpenses(String userKey, int page) {
-		Long userId = userService.getUserIdByUserKey(userKey);
-
-		if (userId == null) {
-			throw new EntityNotFoundException("유저 정보를 찾을 수 없습니다.");
-		}
-
-		// 시간순 정렬 20개
-		Page<LocalDateTime> localDateTimes = expenseRepository.findDistinctCreatedAt(userId, PageRequest.of(page, SIZE));
-		if (localDateTimes.isEmpty()) {
-			return ExpenseResponseDTO.builder()
-					.userKey(userKey)
-					.records(null)
-					.build();
-		}
-
-		List<Expense> expenses = expenseRepository.findByCreatedAtIn(userId, localDateTimes.getContent());
-
-		return ExpenseResponseDTO.builder()
-				.userKey(userKey)
-				.records(expenseToDto(expenses, true))
-				.build();
-	}
 
 	@Transactional(readOnly = true)
 	public ExpenseSummaryDTO getYearlyExpenseSummary(String userKey, int year) {
@@ -261,9 +236,5 @@ public class ExpenseService {
 			.collect(Collectors.toList());
 
 		return createdAts == null || createdAts.isEmpty() ? 0 : createdAts.size();
-	}
-
-	public Expense getExpense(Long id) {
-		return expenseRepository.findExpenseById(id);
 	}
 }
