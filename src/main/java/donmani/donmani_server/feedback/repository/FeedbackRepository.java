@@ -27,5 +27,5 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
 	List<Feedback> findFeedbackByIsOpenedOrderByCreatedDateDesc(Long userId);
 
 	Optional<Feedback> findFirstByUserAndIsOpenedFalseOrderByCreatedDateDesc(User user);
-
+	List<Feedback> findFeedbacksByUserId(Long userId);
 }

@@ -51,7 +51,10 @@ public class FeedbackService {
 		LocalDateTime createdAt = requestDTO.getRecords().get(0).getDate().atStartOfDay(); // 실제 생성일자말고 사용자가 기록하려는 일자
 		LocalDateTime baseTime = LocalDateTime.of(2025, 5, 26, 0, 0);  // 2025-05-30 00:00
 
-		if (createdAt.isEqual(baseTime) || createdAt.isAfter(baseTime)) {
+		// 획득한 피드백 카드가 12개 이상 -> 피드백 카드를 생성하지 않음
+		List<Feedback> feedbacks = feedbackRepository.findFeedbacksByUserId(user.getId());
+
+		if (feedbacks.size() < 12 && (createdAt.isEqual(baseTime) || createdAt.isAfter(baseTime))) {
 			Expense expense = expenseRepository.findExpenseByUserIdAndAndCreatedAt(user.getId(), createdAt);
 
 			// GOOD, BAD 일 경우 feedback 생성
