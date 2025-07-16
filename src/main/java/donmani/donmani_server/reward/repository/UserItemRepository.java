@@ -35,11 +35,7 @@ public interface UserItemRepository extends JpaRepository<UserItem, Long> {
     @Query("SELECT ui FROM UserItem ui " +
             "JOIN ui.item i " +
             "WHERE ui.user = :user " +
-            "AND FUNCTION('YEAR', ui.acquiredAt) = :year " +
-            "AND FUNCTION('MONTH', ui.acquiredAt) = :month " +
             "AND ui.isOpened = false " +
             "AND i.isHidden = true")
-    Optional<UserItem> findOneUnopenedHiddenItem(@Param("user") User user,
-                                                 @Param("year") int year,
-                                                 @Param("month") int month);
+    Optional<UserItem> findOneUnopenedHiddenItem(@Param("user") User user);
 }

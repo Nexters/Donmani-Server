@@ -25,6 +25,7 @@ public class RewardItemResponseDTO {
     private RewardCategory category;
     private boolean isHidden;
     private boolean newAcquiredFlag;
+    private boolean isHiddenRead;
 
     // 가지고 있는 아이템들만 보여줄 때 사용
     public static RewardItemResponseDTO of(RewardItem rewardItem) {
@@ -52,7 +53,7 @@ public class RewardItemResponseDTO {
         return response;
     }
 
-    public static RewardItemResponseDTO of(RewardItem rewardItem, boolean newAcquiredFlag) {
+    public static RewardItemResponseDTO of(RewardItem rewardItem, boolean newAcquiredFlag, boolean isHiddenRead) {
         RewardItemResponseDTO response = new RewardItemResponseDTO();
 
         String prefix = "https://kr.object.ncloudstorage.com/donmani.bucket/reward_content/";
@@ -74,6 +75,7 @@ public class RewardItemResponseDTO {
         response.setCategory(rewardItem.getCategory());
         response.setHidden(rewardItem.isHidden());
         response.setNewAcquiredFlag(newAcquiredFlag);
+        if (rewardItem.isHidden()) response.setHiddenRead(isHiddenRead);
 
         return response;
     }
