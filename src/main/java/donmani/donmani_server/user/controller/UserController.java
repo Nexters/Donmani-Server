@@ -128,9 +128,10 @@ public class UserController {
 		return ResponseEntity.ok(rewardStatus);
 	}
 
+	// 미사용 추후 삭제
 	@PutMapping("api/v1/reward/status/{userKey}")
 	public ResponseEntity<Void> markRewardAsChecked(@PathVariable String userKey) {
-		userService.markRewardAsChecked(userKey);
+
 		return ResponseEntity.ok().build();
 	}
 }
