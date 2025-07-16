@@ -45,16 +45,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Gradle Caching (Clear cache)
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-clearcache-${{ github.run_id }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
       # CI
       - name: Grant Execute Permission For Gradlew
         run: chmod +x gradlew
@@ -69,6 +59,9 @@ jobs:
           touch ./application-test.properties
           echo "${{ secrets.PROPERTIES_TEST }}" > ./application-test.properties
         shell: bash
+
+      - name: Show dependencies
+        run: ./gradlew dependencies --configuration runtimeClasspath
 
       # 테스트를 제외한 프로젝트 빌드
       - name: Build With Gradle
