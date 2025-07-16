@@ -49,7 +49,7 @@ public class FeedbackService {
 		// 오늘 기록된 소비 확인
 		// ver 2.0.0 이후로 기록된 소비만
 		LocalDateTime createdAt = requestDTO.getRecords().get(0).getDate().atStartOfDay(); // 실제 생성일자말고 사용자가 기록하려는 일자
-		LocalDateTime baseTime = LocalDateTime.of(2025, 5, 26, 0, 0);  // 2025-05-30 00:00
+		LocalDateTime baseTime = LocalDateTime.of(2025, 7, 18, 0, 0);  // 2025-07-18 00:00
 
 		if (createdAt.isEqual(baseTime) || createdAt.isAfter(baseTime)) {
 			Expense expense = expenseRepository.findExpenseByUserIdAndAndCreatedAt(user.getId(), createdAt);
