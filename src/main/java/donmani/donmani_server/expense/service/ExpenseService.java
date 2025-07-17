@@ -229,16 +229,8 @@ public class ExpenseService {
 		// 1. 유저 정보 확인
 		User user = userService.getUser(userKey);
 
-		// 오늘 기록된 소비 확인
 		// ver 2.0.0 이후로 기록된 소비만
-		LocalDateTime baseTime = LocalDateTime.of(2025, 7, 18, 0, 0);  // 2025-07-18 00:00
-
 		List<LocalDateTime> createdAts = expenseRepository.findTotalExpensesCount(user.getId());
-
-		createdAts
-			.stream()
-			.filter(createdAt -> createdAt.isEqual(baseTime) || createdAt.isAfter(baseTime))
-			.collect(Collectors.toList());
 
 		return createdAts == null || createdAts.isEmpty() ? 0 : createdAts.size();
 	}
