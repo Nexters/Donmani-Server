@@ -45,17 +45,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # Gradle 캐싱
-      - name: Gradle Caching
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
       # CI
       - name: Grant Execute Permission For Gradlew
         run: chmod +x gradlew
@@ -71,13 +60,15 @@ jobs:
           echo "${{ secrets.PROPERTIES_TEST }}" > ./application-test.properties
         shell: bash
 
+      - name: Show dependencies
+        run: ./gradlew dependencies --configuration runtimeClasspath
+
       # 테스트를 제외한 프로젝트 빌드
       - name: Build With Gradle
-        run: ./gradlew build -x test
+        run: ./gradlew clean build -x test --no-build-cache
 
-      # 테스트 실행
       - name: Build With Test
-        run: ./gradlew test
+        run: ./gradlew test --no-build-cache
 
       # 테스트 결과 파일 생성
       - name: Publish Unit Test Results
