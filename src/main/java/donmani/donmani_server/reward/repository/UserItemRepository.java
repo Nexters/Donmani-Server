@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface UserItemRepository extends JpaRepository<UserItem, Long> {
     @Query("SELECT ui FROM UserItem ui " +
             "WHERE ui.user = :user " +
-            "AND ui.isOpened = true " +
+            "AND (ui.isOpened = true OR ui.item.id = 23)" +
             "ORDER BY ui.acquiredAt DESC")
     List<UserItem> findByUserOrderByAcquiredAtDesc(
             @Param("user") User user
