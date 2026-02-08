@@ -1,85 +1,119 @@
 package donmani.donmani_server.fcm.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
+
 import donmani.donmani_server.fcm.entity.FCMToken;
-import donmani.donmani_server.fcm.reposiory.FCMTokenRepository;
-import donmani.donmani_server.fcm.reposiory.PushExpenseRepository;
+import donmani.donmani_server.fcm.entity.FcmLog;
+import donmani.donmani_server.fcm.entity.PushStatus;
+import donmani.donmani_server.fcm.repository.FCMLogRepository;
+import donmani.donmani_server.fcm.repository.FCMTokenRepository;
+import donmani.donmani_server.fcm.repository.PushExpenseRepository;
 import donmani.donmani_server.user.entity.User;
 import donmani.donmani_server.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class FCMService {
 
-    private final FCMTokenRepository fcmTokenRepository;
-    private final UserRepository userRepository;
-    private final PushExpenseRepository expenseRepository;
+	private final FCMTokenRepository fcmTokenRepository;
+	private final UserRepository userRepository;
+	private final PushExpenseRepository expenseRepository;
+	private final FCMLogRepository fcmLogRepository;
 
-    @Transactional
-    public void saveOrUpdateToken(String userKey, String token) {
-        User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
+	@Transactional
+	public void saveOrUpdateToken(String userKey, String token) {
+		User user = userRepository.findByIdentifier(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
-        String removeQuotesToken = removeQuotes(token);
-        FCMToken fcmToken = fcmTokenRepository.findByUser(user)
-                .map(existingToken -> {
-                    existingToken.setToken(removeQuotesToken);
-                    return existingToken;
-                }).orElseGet(() -> FCMToken.builder()
-                        .user(user)
-                        .token(removeQuotesToken)
-                        .build()
-                );
+		String removeQuotesToken = removeQuotes(token);
+		FCMToken fcmToken = fcmTokenRepository.findByUser(user)
+			.map(existingToken -> {
+				existingToken.setToken(removeQuotesToken);
+				return existingToken;
+			}).orElseGet(() -> FCMToken.builder()
+				.user(user)
+				.token(removeQuotesToken)
+				.build()
+			);
 
-        fcmTokenRepository.save(fcmToken);
-    }
+		fcmTokenRepository.save(fcmToken);
+	}
 
-    private String removeQuotes(String input) {
-        return (input.startsWith("\"") && input.endsWith("\"")) ?
-                input.substring(1, input.length() - 1) : input;
-    }
+	private String removeQuotes(String input) {
+		return (input.startsWith("\"") && input.endsWith("\"")) ?
+			input.substring(1, input.length() - 1) : input;
+	}
 
-    public void sendMessage(String targetToken, String title, String body) {
-        Message message = Message.builder()
-                .setToken(targetToken)
-                .setNotification(Notification.builder()
-                        .setTitle(title)
-                        .setBody(body)
-                        .build())
-                .build();
-        System.out.println();
-        try {
-            FirebaseMessaging.getInstance().send(message);
-        } catch (FirebaseMessagingException e) {
-            e.printStackTrace();
-        }
-    }
+	@Transactional
+	public void sendMessage(
+		String targetToken,
+		String title,
+		String content
+	) {
+		// 1. FCM 인스턴스 세팅
+		Message message = Message.builder()
+			.setToken(targetToken)
+			.setNotification(Notification.builder()
+				.setTitle(title)
+				.setBody(content)
+				.build())
+			.build();
 
-    public void sendMessageTest(String userKey) {
-        User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
-        FCMToken token = fcmTokenRepository.findByUser(user).orElseThrow();
+		// 2. FCM 로그 저장
+		FcmLog fcmlog = saveFcmLog(targetToken, title, content, PushStatus.PENDING, null, null);
 
-        String title = "Test Title";
-        String message = "Test Message, User : " + user.getName();
-        sendMessage(token.getToken(), title, message);
-    }
-    @Transactional
-    public List<String> getTokenNoExpenseToday() {
-        return expenseRepository.findTokensWithoutExpenseToday();
-    }
+		try {
+			// 3. FCM 발송
+			FirebaseMessaging.getInstance().send(message);
 
-    @Transactional
-    public List<String> getTokenNoExpenseYesterday() {
-        return expenseRepository.findTokensWithoutExpenseSince(LocalDateTime.now().minusDays(1));
-    }
+			// 4-1. FCM 로그 갱신 (성공)
+			fcmlog.updateStatus(PushStatus.SUCCESS, null, null);
+		} catch (FirebaseMessagingException e) {
+			String errorCode = e.getMessagingErrorCode().name();
+			String errorMessage = e.getMessage();
 
+			// 4-2. FCM 로그 갱신 (실패)
+			fcmlog.updateStatus(PushStatus.FAIL, errorCode, errorMessage);
+		}
+	}
+
+	@Transactional
+	public List<String> getTokenNoExpenseToday() {
+		return expenseRepository.findTokensWithoutExpenseToday();
+	}
+
+	@Transactional
+	public List<String> getTokenNoExpenseYesterday() {
+		return expenseRepository.findTokensWithoutExpenseSince(LocalDateTime.now().minusDays(1));
+	}
+
+	@Transactional
+	public FcmLog saveFcmLog(
+		String targetToken,
+		String title,
+		String content,
+		PushStatus status,
+		String errorCode,
+		String errorMessage
+	) {
+		FcmLog fcmlog = FcmLog.builder()
+			.fcmTokenSnapshot(targetToken)
+			.title(title)
+			.content(content)
+			.status(status)
+			.errorCode(errorCode)
+			.errorMessage(errorMessage)
+			.build();
+
+		return fcmLogRepository.save(fcmlog);
+	}
 }

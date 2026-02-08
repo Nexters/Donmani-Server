@@ -40,7 +40,7 @@ public class RewardService {
      */
     @Transactional
     public void acquireRandomItems(String userKey, LocalDate reqDate) {
-        User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
+        User user = userRepository.findByIdentifier(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
         List<UserItem> acquiredItems = userItemRepository.findAllByUser(user);
         Set<Long> acquiredItemIds = acquiredItems.stream()
@@ -80,7 +80,7 @@ public class RewardService {
      */
     @Transactional(readOnly = true)
     public int getNotOpenedItemSize(String userKey) {
-        User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
+        User user = userRepository.findByIdentifier(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
         List<UserItem> notOpenedItems = userItemRepository.findByUserNotOpened(user);
 
@@ -95,7 +95,7 @@ public class RewardService {
     public List<RewardItemResponseDTO> openItems(String userKey) {
         LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
-        User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
+        User user = userRepository.findByIdentifier(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
         // 피드백 열기 (중간 이탈해도 피드백+선물 한 set으로 열기)
         Feedback notOpenedFeedback = feedbackRepository.findFeedbackByIsOpenedOrderByCreatedDateDesc(user.getId()).get(0);
@@ -154,7 +154,7 @@ public class RewardService {
      */
     @Transactional(readOnly = true)
     public Map<RewardCategory, List<RewardItemResponseDTO>> getAcquiredItem(String userKey) {
-        User user = userRepository.findByUserKey(userKey)
+        User user = userRepository.findByIdentifier(userKey)
                 .orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
         ZoneId zoneId = ZoneId.of("Asia/Seoul");
@@ -194,7 +194,7 @@ public class RewardService {
 
     @Transactional
     public void updateHiddenRead(HiddenUpdateRequestDTO request) {
-        User user = userRepository.findByUserKey(request.getUserKey()).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
+        User user = userRepository.findByIdentifier(request.getUserKey()).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
         UserItem findItem = userItemRepository.findOneUnopenedHiddenItem(user).orElseThrow(HiddenItemAlreadyOpenedException::new);
 
@@ -208,7 +208,7 @@ public class RewardService {
      */
     @Transactional
     public void saveItem(RewardItemSaveRequestDTO request) {
-        User user = userRepository.findByUserKey(request.getUserKey()).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
+        User user = userRepository.findByIdentifier(request.getUserKey()).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         int year = now.getYear();
@@ -256,7 +256,7 @@ public class RewardService {
         List<RewardItemResponseDTO> savedItems = new ArrayList<>();
         RewardItem background = null, effect = null, decoration = null, byeoltongCase = null;
 
-        User user = userRepository.findByUserKey(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
+        User user = userRepository.findByIdentifier(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
         Optional<UserEquippedItem> savedItem = userEquippedItemRepository.findTopByUserAndSavedAtInCurrentMonth(user.getId(), year, month);
 
@@ -317,7 +317,7 @@ public class RewardService {
      */
     @Transactional(readOnly = true)
     public boolean hasNotOpenedRewards(String userKey) {
-        User user = userRepository.findByUserKey(userKey)
+        User user = userRepository.findByIdentifier(userKey)
             .orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
         List<UserItem> notOpenedItems = userItemRepository.findByUserNotOpened(user);
