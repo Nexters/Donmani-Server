@@ -1,4 +1,4 @@
-package donmani.donmani_server.fcm.reposiory;
+package donmani.donmani_server.fcm.repository;
 
 import donmani.donmani_server.expense.entity.Expense;
 import org.springframework.data.jpa.repository.JpaRepository;

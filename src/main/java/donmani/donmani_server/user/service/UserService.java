@@ -29,7 +29,7 @@ public class UserService {
 
 	@Transactional
 	public UserRegisterResponseDTO registerUser(String userKey) {
-		User user = userRepository.findByUserKey(userKey)
+		User user = userRepository.findByIdentifier(userKey)
 			.orElseGet(() -> {
 				String randomUsername = User.generateRandomUsername();
 
@@ -50,7 +50,7 @@ public class UserService {
 	@Transactional
 	public UserRegisterResponseDTOV1 registerUserV1(String userKey) {
 		UserRegisterResponseDTOV1 response;
-		Optional<User> user = userRepository.findByUserKey(userKey);
+		Optional<User> user = userRepository.findByIdentifier(userKey);
 
 		LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
@@ -87,7 +87,7 @@ public class UserService {
 		LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
 		User user = userRepository
-			.findByUserKey(userKey)
+			.findByIdentifier(userKey)
 			.orElseThrow(() -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다."));
 
 		user.setName(newUserName);
@@ -100,14 +100,14 @@ public class UserService {
 
 	@Transactional(readOnly = true)
 	public Long getUserIdByUserKey(String userKey) {
-		return userRepository.findByUserKey(userKey)
+		return userRepository.findByIdentifier(userKey)
 			.orElseThrow(() -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다."))
 			.getId();
 	}
 
 	@Transactional(readOnly = true)
 	public Long getUserIdByUserKeyV1(String userKey) {
-		return userRepository.findByUserKey(userKey)
+		return userRepository.findByIdentifier(userKey)
 			.map(User::getId)
 			.orElse(-1L); // 기본값으로 -1을 리턴
 	}
@@ -116,7 +116,7 @@ public class UserService {
 	public void markNoticeAsRead(String userKey) {
 		LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
-		User user = userRepository.findByUserKey(userKey)
+		User user = userRepository.findByIdentifier(userKey)
 				.orElseThrow(() -> new IllegalArgumentException("User not found"));
 
 		user.setNoticeRead(true); // 공지사항 읽음 처리
@@ -127,7 +127,7 @@ public class UserService {
 
 	@Transactional(readOnly = true)
 	public NoticeReadDTO getNoticeReadStatus(String userKey) {
-		User user = userRepository.findByUserKey(userKey)
+		User user = userRepository.findByIdentifier(userKey)
 				.orElseThrow(() -> new IllegalArgumentException("User not found"));
 
 		return NoticeReadDTO.builder().read(user.isNoticeRead()).build(); // 읽음 여부 반환
@@ -138,7 +138,7 @@ public class UserService {
 		LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
 		User user = userRepository
-			.findByUserKey(userKey)
+			.findByIdentifier(userKey)
 			.orElseThrow(() -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다."));
 
 		user.setNoticeEnable(isNoticeEnable);
@@ -150,16 +150,16 @@ public class UserService {
 		LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
 		User user = userRepository
-			.findByUserKey(userKey)
+			.findByIdentifier(userKey)
 			.orElseThrow(() -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다."));
 
 		user.setLastLoginDate(localDateTime);
 		user.setUpdateDate(localDateTime);
 	}
 
-	public User getUser(String userKey) {
+	public User getUser(String identifier) {
 		User user = userRepository
-			.findByUserKey(userKey)
+			.findByIdentifier(identifier)
 			.orElseThrow(() -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다."));
 
 		return user;
@@ -167,7 +167,7 @@ public class UserService {
 
 	@Transactional(readOnly = true)
 	public RewardCheckDTO getRewardCheckedStatus(String userKey) {
-		User user = userRepository.findByUserKey(userKey)
+		User user = userRepository.findByIdentifier(userKey)
 				.orElseThrow(() -> new IllegalArgumentException("User not found"));
 
 		ZoneId zoneId = ZoneId.of("Asia/Seoul");
