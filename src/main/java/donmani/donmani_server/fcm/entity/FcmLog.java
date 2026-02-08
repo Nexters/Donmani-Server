@@ -33,6 +33,7 @@ public class FcmLog extends BaseTimeEntity {
 	private String content;
 
 	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
 	private PushStatus status;
 
 	private String errorCode;

@@ -29,11 +29,11 @@ public class FortuneHistory extends BaseTimeEntity {
 	private Long id;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "fortune_id")
+	@JoinColumn(name = "fortune_id", nullable = false)
 	private Fortune fortune;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id")
+	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
 	@Enumerated(EnumType.STRING)
