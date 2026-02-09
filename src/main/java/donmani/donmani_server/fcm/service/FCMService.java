@@ -69,7 +69,7 @@ public class FCMService {
 				.setTitle(title)
 				.setBody(content)
 				.build())
-			.putData("notificationType", notificationType.name()) // TODO 이거 어캄? 다른 것들도 넣어야하나
+			.putData("notificationType", notificationType.name()) // TODO : 운세 정보까지 같이 던져줄지
 			.build();
 
 		// 2. FCM 로그 저장

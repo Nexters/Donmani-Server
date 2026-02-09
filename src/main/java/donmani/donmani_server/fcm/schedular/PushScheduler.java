@@ -50,7 +50,7 @@ public class PushScheduler {
 				user,
 				token,
 				NotificationType.DEFAULT,
-				"앗, 어제 소비 일기 아직 안 썼는데.. \uD83D\uDE2E️",
+				"앗, 어제 소비 일기 아직 안 썼는데... 😮️",
 				"어제 기록은 오늘까지 쓸 수 있어. 지금 기록해 볼까?"
 			);
 		}
