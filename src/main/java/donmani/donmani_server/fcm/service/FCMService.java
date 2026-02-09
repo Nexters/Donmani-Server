@@ -13,6 +13,7 @@ import com.google.firebase.messaging.Notification;
 
 import donmani.donmani_server.fcm.entity.FCMToken;
 import donmani.donmani_server.fcm.entity.FcmLog;
+import donmani.donmani_server.fcm.entity.NotificationType;
 import donmani.donmani_server.fcm.entity.PushStatus;
 import donmani.donmani_server.fcm.repository.FCMLogRepository;
 import donmani.donmani_server.fcm.repository.FCMTokenRepository;
@@ -55,21 +56,31 @@ public class FCMService {
 
 	@Transactional
 	public void sendMessage(
-		String targetToken,
+		User user,
+		String userToken,
+		NotificationType notificationType,
 		String title,
 		String content
 	) {
 		// 1. FCM 인스턴스 세팅
 		Message message = Message.builder()
-			.setToken(targetToken)
+			.setToken(userToken)
 			.setNotification(Notification.builder()
 				.setTitle(title)
 				.setBody(content)
 				.build())
+			.putData("notificationType", notificationType.name()) // TODO : 운세 정보까지 같이 던져줄지
 			.build();
 
 		// 2. FCM 로그 저장
-		FcmLog fcmlog = saveFcmLog(targetToken, title, content, PushStatus.PENDING, null, null);
+		FcmLog fcmlog = saveFcmLog(
+			user,
+			userToken,
+			notificationType,
+			PushStatus.PENDING,
+			null,
+			null
+		);
 
 		try {
 			// 3. FCM 발송
@@ -98,17 +109,17 @@ public class FCMService {
 
 	@Transactional
 	public FcmLog saveFcmLog(
-		String targetToken,
-		String title,
-		String content,
+		User user,
+		String userToken,
+		NotificationType notificationType,
 		PushStatus status,
 		String errorCode,
 		String errorMessage
 	) {
 		FcmLog fcmlog = FcmLog.builder()
-			.fcmTokenSnapshot(targetToken)
-			.title(title)
-			.content(content)
+			.user(user)
+			.fcmTokenSnapshot(userToken)
+			.notificationType(notificationType)
 			.status(status)
 			.errorCode(errorCode)
 			.errorMessage(errorMessage)

@@ -1,13 +1,17 @@
 package donmani.donmani_server.fcm.entity;
 
 import donmani.donmani_server.common.log.BaseTimeEntity;
+import donmani.donmani_server.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -23,14 +27,22 @@ public class FcmLog extends BaseTimeEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id", nullable = false)
+	private User user;
+
 	@Column(nullable = false)
 	private String fcmTokenSnapshot;
 
+	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private String title;
+	private NotificationType notificationType;
 
-	@Column(columnDefinition = "TEXT", nullable = false)
-	private String content;
+	// @Column(nullable = false)
+	// private String title;
+	//
+	// @Column(columnDefinition = "TEXT", nullable = false)
+	// private String content;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
@@ -43,16 +55,20 @@ public class FcmLog extends BaseTimeEntity {
 
 	@Builder
 	public FcmLog(
+		User user,
 		String fcmTokenSnapshot,
-		String title,
-		String content,
+		NotificationType notificationType,
+		// String title,
+		// String content,
 		PushStatus status,
 		String errorCode,
 		String errorMessage
 	) {
+		this.user = user;
 		this.fcmTokenSnapshot = fcmTokenSnapshot;
-		this.title = title;
-		this.content = content;
+		this.notificationType = notificationType;
+		// this.title = title;
+		// this.content = content;
 		this.status = status;
 		this.errorCode = errorCode;
 		this.errorMessage = errorMessage;

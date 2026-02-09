@@ -30,17 +30,27 @@ public class Fortune {
 	@Column(nullable = false)
 	private String title;
 
+	@Column(nullable = false)
+	private String subtitle;
+
 	@Column(columnDefinition = "TEXT", nullable = false)
 	private String content;
+
+	@Column(nullable = false)
+	private String item;
 
 	@Builder
 	public Fortune(
 		LocalDate targetDate,
 		String title,
-		String content
+		String subtitle,
+		String content,
+		String item
 	) {
 		this.targetDate = targetDate;
 		this.title = title;
+		this.subtitle = subtitle;
 		this.content = content;
+		this.item = item;
 	}
 }
