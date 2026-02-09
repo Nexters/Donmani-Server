@@ -3,7 +3,6 @@ package donmani.donmani_server.fcm.controller;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -68,8 +67,19 @@ public class FCMController {
 		}
 	}
 
-	@PostMapping("/test/send-fortune/{userKey}")
-	public void sendDailyFortunesTest(@PathVariable String userKey) {
-		fortuneService.sendDailyFortuneTest(userKey);
+	@PostMapping("/test/send-push/{userKey}/{userToken}")
+	public void sendDailyPushTest(
+		@PathVariable String userKey,
+		@PathVariable String userToken
+	) {
+		fortuneService.sendDailyPushTest(userKey, userToken);
+	}
+
+	@PostMapping("/test/send-fortune/{userKey}/{userToken}")
+	public void sendDailyFortunesTest(
+		@PathVariable String userKey,
+		@PathVariable String userToken
+	) {
+		fortuneService.sendDailyFortuneTest(userKey, userToken);
 	}
 }
