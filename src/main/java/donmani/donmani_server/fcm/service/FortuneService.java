@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import donmani.donmani_server.fcm.dto.FortuneResponseV1;
 import donmani.donmani_server.fcm.entity.Fortune;
 import donmani.donmani_server.fcm.entity.FortuneHistory;
+import donmani.donmani_server.fcm.entity.NotificationType;
 import donmani.donmani_server.fcm.entity.ReadSource;
 import donmani.donmani_server.fcm.repository.FortuneHistoryRepository;
 import donmani.donmani_server.fcm.repository.FortuneRepository;
@@ -38,14 +39,14 @@ public class FortuneService {
 	 * 3. FCM을 통해 푸시 알림 발송하고, 발송 이력을 저장합니다.
 	 * </p>
 	 *
-	 * @param token 유저 식별 및 FCM 전송을 위한 디바이스/유저 토큰
+	 * @param userToken 유저 식별 및 FCM 전송을 위한 디바이스/유저 토큰
 	 * @return Void
 	 * @throws EntityNotFoundException 운세 정보 없음
 	 * @throws IllegalArgumentException 유저 정보 없음
 	 *
 	 */
 	@Transactional
-	public void sendDailyFortune(String token) {
+	public void sendDailyFortune(String userToken) {
 		// 1. 금일 운세 데이터 조회
 		LocalDate localDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
@@ -53,9 +54,10 @@ public class FortuneService {
 			.orElseThrow(() -> new EntityNotFoundException("오늘의 운세가 없습니다."));
 
 		// 2. 유저 확인
-		User user = userService.getUser(token);
+		User user = userService.getUser(userToken);
 
 		// 3. 운세 이력 저장
+		// TODO : 오늘의 운세 발송 이력 있으면 발송 제외하는 로직 추가
 		FortuneHistory history = FortuneHistory.builder()
 			.fortune(dailyFortune)
 			.user(user)
@@ -64,11 +66,17 @@ public class FortuneService {
 		fortuneHistoryRepository.save(history);
 
 		// 4. 푸시 알림 발송 및 이력 저장
-		fcmService.sendMessage(token, dailyFortune.getTitle(), dailyFortune.getContent());
+		fcmService.sendMessage(
+			user,
+			userToken,
+			NotificationType.FORTUNE,
+			dailyFortune.getTitle(),
+			dailyFortune.getContent()
+		);
 	}
 
 	@Transactional
-	public void sendDailyFortuneTest(String testToken) {
+	public void sendDailyFortuneTest(String userKey, String userToken) {
 		// 1. 금일 운세 데이터 조회
 		LocalDate localDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
@@ -76,7 +84,7 @@ public class FortuneService {
 			.orElseThrow(() -> new EntityNotFoundException("오늘의 운세가 없습니다."));
 
 		// 2. 유저 확인
-		User user = userService.getUser(testToken);
+		User user = userService.getUser(userKey);
 
 		// 3. 운세 이력 저장
 		FortuneHistory history = FortuneHistory.builder()
@@ -87,7 +95,36 @@ public class FortuneService {
 		fortuneHistoryRepository.save(history);
 
 		// 4. 푸시 알림 발송 및 이력 저장
-		fcmService.sendMessage(testToken, dailyFortune.getTitle(), dailyFortune.getContent());
+		fcmService.sendMessage(
+			user,
+			userToken,
+			NotificationType.FORTUNE,
+			dailyFortune.getTitle(),
+			dailyFortune.getSubtitle()
+		);
+	}
+
+	@Transactional
+	public void sendDailyPushTest(String userKey, String userToken) {
+		// 1. 유저 확인
+		User user = userService.getUser(userKey);
+
+		// 4. 푸시 알림 발송 및 이력 저장
+		fcmService.sendMessage(
+			user,
+			userToken,
+			NotificationType.DEFAULT,
+			"오늘 소비 일기 기록해 볼까? ☺️",
+			"별사탕 받고 기분 좋게 하루 마무리하자!"
+		);
+
+		fcmService.sendMessage(
+			user,
+			userToken,
+			NotificationType.DEFAULT,
+			"앗, 어제 소비 일기 아직 안 썼는데... 😮️",
+			"어제 기록은 오늘까지 쓸 수 있어. 지금 기록해 볼까?"
+		);
 	}
 
 	/**
