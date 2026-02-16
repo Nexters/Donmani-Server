@@ -47,17 +47,16 @@ public class FortuneService {
 	 */
 	@Transactional
 	public void sendDailyFortune(String userToken) {
-		// 1. 금일 운세 데이터 조회
 		LocalDate localDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
-		Fortune dailyFortune = fortuneRepository.findByTargetDate(localDate)
-			.orElseThrow(() -> new EntityNotFoundException("오늘의 운세가 없습니다."));
-
-		// 2. 유저 확인
+		// 1. 유저 확인
 		User user = userService.getUser(userToken);
 
+		// 2. 금일 운세 데이터 조회
+		Fortune dailyFortune = fortuneRepository.findFortuneByUserIdAndTargetDate(user.getId(), localDate)
+			.orElseThrow(() -> new EntityNotFoundException("오늘의 운세가 없습니다."));
+
 		// 3. 운세 이력 저장
-		// TODO : 오늘의 운세 발송 이력 있으면 발송 제외하는 로직 추가
 		FortuneHistory history = FortuneHistory.builder()
 			.fortune(dailyFortune)
 			.user(user)
@@ -77,14 +76,14 @@ public class FortuneService {
 
 	@Transactional
 	public void sendDailyFortuneTest(String userKey, String userToken) {
-		// 1. 금일 운세 데이터 조회
 		LocalDate localDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
-		Fortune dailyFortune = fortuneRepository.findByTargetDate(localDate)
-			.orElseThrow(() -> new EntityNotFoundException("오늘의 운세가 없습니다."));
-
-		// 2. 유저 확인
+		// 1. 유저 확인
 		User user = userService.getUser(userKey);
+
+		// 2. 금일 운세 데이터 조회
+		Fortune dailyFortune = fortuneRepository.findFortuneByUserIdAndTargetDate(user.getId(), localDate)
+			.orElseThrow(() -> new EntityNotFoundException("오늘의 운세가 없습니다."));
 
 		// 3. 운세 이력 저장
 		FortuneHistory history = FortuneHistory.builder()

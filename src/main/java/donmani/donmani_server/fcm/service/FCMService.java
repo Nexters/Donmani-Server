@@ -1,6 +1,8 @@
 package donmani.donmani_server.fcm.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -105,6 +107,12 @@ public class FCMService {
 	@Transactional
 	public List<String> getTokenNoExpenseYesterday() {
 		return expenseRepository.findTokensWithoutExpenseSince(LocalDateTime.now().minusDays(1));
+	}
+
+	@Transactional(readOnly = true)
+	public List<String> getTokensToSendFortune() {
+		LocalDate localDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
+		return fcmTokenRepository.findAllTokensToSendFortune(localDate);
 	}
 
 	@Transactional

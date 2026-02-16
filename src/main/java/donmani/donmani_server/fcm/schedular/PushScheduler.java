@@ -56,12 +56,12 @@ public class PushScheduler {
 		}
 	}
 
-	// @Scheduled(cron = "0 32 8 * * *", zone = "Asia/Seoul")
-	// public void sendDailyFortunes() {
-	// 	List<String> tokens = tokenService.getTokenNoExpenseToday();
-	//
-	// 	for (String token : tokens) {
-	// 		fortuneService.sendDailyFortune(token);
-	// 	}
-	// }
+	@Scheduled(cron = "0 32 8 * * *", zone = "Asia/Seoul")
+	public void sendDailyFortunes() {
+		List<String> tokens = fcmService.getTokensToSendFortune();
+
+		for (String token : tokens) {
+			fortuneService.sendDailyFortune(token);
+		}
+	}
 }
