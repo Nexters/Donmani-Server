@@ -70,7 +70,7 @@ public class FortuneService {
 			userToken,
 			NotificationType.FORTUNE,
 			dailyFortune.getTitle(),
-			dailyFortune.getContent()
+			dailyFortune.getSubtitle()
 		);
 	}
 
