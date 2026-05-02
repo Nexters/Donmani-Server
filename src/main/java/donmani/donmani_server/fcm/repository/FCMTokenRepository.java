@@ -32,4 +32,13 @@ public interface FCMTokenRepository extends JpaRepository<FCMToken, Long> {
 		+ "    AND c.target_date = :localDate\n"
 		+ ")\n", nativeQuery = true)
 	List<String> findAllTokensToSendFortune(LocalDate localDate);
+
+	@Query(value = "\n"
+		+ "SELECT a.token\n"
+		+ "FROM fcmtoken a\n"
+		+ "JOIN fortune_histories b ON a.user_id = b.user_id\n"
+		+ "JOIN fortune c ON b.fortune_id = c.id\n"
+		+ "WHERE c.target_date = :localDate\n"
+		+ "AND b.read_at IS NULL\n", nativeQuery = true)
+	List<String> findAllTokensToResendUnreadFortune(LocalDate localDate);
 }
