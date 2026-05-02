@@ -1,7 +1,6 @@
 package donmani.donmani_server.fcm.service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 
@@ -27,6 +26,8 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class FCMService {
+
+	private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
 	private final FCMTokenRepository fcmTokenRepository;
 	private final UserRepository userRepository;
@@ -64,6 +65,9 @@ public class FCMService {
 		String title,
 		String content
 	) {
+		LocalDate today = LocalDate.now(KST);
+		boolean isTodayExpenseExist = expenseRepository.existsExpenseOn(user.getId(), today);
+
 		// 1. FCM 인스턴스 세팅
 		Message message = Message.builder()
 			.setToken(userToken)
@@ -71,7 +75,8 @@ public class FCMService {
 				.setTitle(title)
 				.setBody(content)
 				.build())
-			.putData("notificationType", notificationType.name()) // TODO : 운세 정보까지 같이 던져줄지
+			.putData("notificationType", notificationType.name())
+			.putData("isTodayExpenseExist", isTodayExpenseExist ? "Y" : "N")
 			.build();
 
 		// 2. FCM 로그 저장
@@ -99,20 +104,30 @@ public class FCMService {
 		}
 	}
 
-	@Transactional
-	public List<String> getTokenNoExpenseToday() {
-		return expenseRepository.findTokensWithoutExpenseToday();
+	@Transactional(readOnly = true)
+	public List<String> getTokensReadFortuneToday() {
+		LocalDate today = LocalDate.now(KST);
+
+		return expenseRepository.findTokensReadFortuneOn(today);
 	}
 
-	@Transactional
-	public List<String> getTokenNoExpenseYesterday() {
-		return expenseRepository.findTokensWithoutExpenseSince(LocalDateTime.now().minusDays(1));
+	@Transactional(readOnly = true)
+	public List<String> getTokensNoExpenseTodayAndUnreadFortune() {
+		LocalDate today = LocalDate.now(KST);
+
+		return expenseRepository.findTokensWithoutExpenseOnAndUnreadFortune(today, today);
 	}
 
 	@Transactional(readOnly = true)
 	public List<String> getTokensToSendFortune() {
-		LocalDate localDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
+		LocalDate localDate = LocalDate.now(KST);
 		return fcmTokenRepository.findAllTokensToSendFortune(localDate);
+	}
+
+	@Transactional(readOnly = true)
+	public List<String> getTokensToSendFortuneInAfternoon() {
+		LocalDate localDate = LocalDate.now(KST);
+		return fcmTokenRepository.findAllTokensToResendUnreadFortune(localDate);
 	}
 
 	@Transactional

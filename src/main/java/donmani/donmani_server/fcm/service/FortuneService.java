@@ -75,6 +75,19 @@ public class FortuneService {
 	}
 
 	@Transactional
+	public void resendUnreadDailyFortune(String userToken) {
+		User user = userService.getUser(userToken);
+
+		fcmService.sendMessage(
+			user,
+			userToken,
+			NotificationType.FORTUNE,
+			"여러분 저 왔어요 🍀운세🍀 왔어요",
+			"아직 확인 전인 운세가 있어요. 오늘이 지나면 볼 수 없어요!"
+		);
+	}
+
+	@Transactional
 	public void sendDailyFortuneTest(String userKey, String userToken) {
 		LocalDate localDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
