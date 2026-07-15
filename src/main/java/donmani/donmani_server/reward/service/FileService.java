@@ -28,7 +28,7 @@ public class FileService {
     @Value("${ncp.storage.bucket-name}")
     private String bucketName;
 
-    @Value("${ncp.storage.upload-dir}")
+    @Value("${ncp.storage.reward-upload-dir}")
     private String uploadDir;
 
     public List<FileDTO> uploadFiles(List<MultipartFile> multipartFiles){
