@@ -4,6 +4,8 @@ import java.time.LocalDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -39,6 +41,23 @@ public class Fortune {
 	@Column(nullable = false)
 	private String item;
 
+	@Enumerated(EnumType.STRING)
+	@Column(name = "text_provider")
+	private FortuneProvider textProvider;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "image_provider")
+	private FortuneProvider imageProvider;
+
+	@Column(name = "image_key")
+	private String imageKey;
+
+	@Column(name = "image_url", length = 1000)
+	private String imageUrl;
+
+	@Column(name = "image_prompt", columnDefinition = "TEXT")
+	private String imagePrompt;
+
 	@Builder
 	public Fortune(
 		LocalDate targetDate,
@@ -52,5 +71,39 @@ public class Fortune {
 		this.subtitle = subtitle;
 		this.content = content;
 		this.item = item;
+	}
+
+	public void updateText(
+		String title,
+		String subtitle,
+		String content,
+		String item,
+		FortuneProvider textProvider,
+		FortuneProvider imageProvider
+	) {
+		this.title = title;
+		this.subtitle = subtitle;
+		this.content = content;
+		this.item = item;
+		this.textProvider = textProvider;
+		this.imageProvider = imageProvider;
+	}
+
+	public void updateImage(
+		String imageKey,
+		String imageUrl,
+		String imagePrompt,
+		FortuneProvider imageProvider
+	) {
+		this.imageKey = imageKey;
+		this.imageUrl = imageUrl;
+		this.imagePrompt = imagePrompt;
+		this.imageProvider = imageProvider;
+	}
+
+	public void clearImage() {
+		this.imageKey = null;
+		this.imageUrl = null;
+		this.imagePrompt = null;
 	}
 }
