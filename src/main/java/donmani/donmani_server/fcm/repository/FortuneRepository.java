@@ -1,6 +1,7 @@
 package donmani.donmani_server.fcm.repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,6 +10,10 @@ import org.springframework.data.jpa.repository.Query;
 import donmani.donmani_server.fcm.entity.Fortune;
 
 public interface FortuneRepository extends JpaRepository<Fortune, Long> {
+	Optional<Fortune> findByTargetDate(LocalDate targetDate);
+
+	List<Fortune> findAllByTargetDateBetweenOrderByTargetDateAsc(LocalDate startDate, LocalDate endDate);
+
 	@Query(value = "\n"
 		+ "SELECT *\n"
 		+ "FROM fortune a\n"
