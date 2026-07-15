@@ -3,10 +3,12 @@ package donmani.donmani_server.fcm.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import donmani.donmani_server.fcm.dto.FortuneHistoryResponseV1;
 import donmani.donmani_server.fcm.dto.FortuneResponseV1;
 import donmani.donmani_server.fcm.entity.Fortune;
 import donmani.donmani_server.fcm.entity.FortuneHistory;
@@ -156,6 +158,26 @@ public class FortuneService {
 			.orElseThrow(() -> new EntityNotFoundException("오늘의 운세가 없습니다."));
 
 		return FortuneResponseV1.from(fortuneHistory.getFortune());
+	}
+
+	/**
+	 * 유저가 확인한 운세 이력을 기간으로 조회합니다.
+	 *
+	 * @param userKey 유저 고유 키
+	 * @param startDate 조회 시작 일자
+	 * @param endDate 조회 종료 일자
+	 * @return 읽은 운세 이력 응답 목록
+	 */
+	@Transactional(readOnly = true)
+	public List<FortuneHistoryResponseV1> getFortuneHistories(
+		String userKey,
+		LocalDate startDate,
+		LocalDate endDate
+	) {
+		return fortuneHistoryRepository.findReadFortunesByTargetDateBetween(userKey, startDate, endDate)
+			.stream()
+			.map(fortuneHistory -> FortuneHistoryResponseV1.from(fortuneHistory.getFortune()))
+			.toList();
 	}
 
 	/**
