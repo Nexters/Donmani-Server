@@ -33,6 +33,9 @@ public class FortuneResponseV1 {
 	@Schema(description = "운세 아이템", example = "행운의 시간 : 오후 10시")
 	private String item;
 
+	@Schema(description = "운세 이미지 URL", example = "https://example.com/fortune-images/2026-02-02.png")
+	private String imageUrl;
+
 	public static FortuneResponseV1 from(Fortune fortune) {
 		return FortuneResponseV1.builder()
 			.targetDate(fortune.getTargetDate())
@@ -40,6 +43,7 @@ public class FortuneResponseV1 {
 			.subtitle(fortune.getSubtitle())
 			.content(fortune.getContent())
 			.item(fortune.getItem())
+			.imageUrl(fortune.getImageUrl())
 			.build();
 	}
 }
