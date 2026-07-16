@@ -10,6 +10,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import donmani.donmani_server.webhook.repository.WebHookRepository;
@@ -21,7 +22,7 @@ public class WebHookService {
 	private final WebHookRepository webHookRepository;
 	private final WebClient webClient;
 
-	@Value("${discord.webhook.url}")
+	@Value("${discord.statistics.webhook.url:}")
 	private String webhookUrl;
 	private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일");
 
@@ -93,6 +94,7 @@ public class WebHookService {
 			"embeds", List.of(embed)
 		);
 
+		assertWebhookConfigured();
 		webClient.post()
 			.uri(webhookUrl)
 			.contentType(MediaType.APPLICATION_JSON)
@@ -100,5 +102,11 @@ public class WebHookService {
 			.retrieve()
 			.toBodilessEntity()
 			.subscribe();
+	}
+
+	private void assertWebhookConfigured() {
+		if (!StringUtils.hasText(webhookUrl) || "default-value".equals(webhookUrl)) {
+			throw new IllegalStateException("discord.statistics.webhook.url 설정이 필요합니다.");
+		}
 	}
 }
