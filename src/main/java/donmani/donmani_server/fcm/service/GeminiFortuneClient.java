@@ -3,7 +3,9 @@ package donmani.donmani_server.fcm.service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Base64;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
@@ -18,10 +20,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import donmani.donmani_server.fcm.entity.Fortune;
+import donmani.donmani_server.fcm.entity.FortuneAiCallType;
 import donmani.donmani_server.fcm.entity.FortuneProvider;
 import lombok.RequiredArgsConstructor;
 
@@ -40,18 +45,13 @@ public class GeminiFortuneClient implements FortuneTextGenerator, FortuneImageGe
 	private final ChatModel chatModel;
 	private final ObjectMapper objectMapper;
 	private final FortunePromptService fortunePromptService;
+	private final FortuneAiCallLogService fortuneAiCallLogService;
 
 	@Value("${spring.ai.google.genai.api-key:}")
 	private String apiKey;
 
-	@Value("${fortune.automation.gemini.image-model:}")
-	private String imageModel;
-
-	@Value("${fortune.automation.gemini.image-aspect-ratio:}")
-	private String imageAspectRatio;
-
-	@Value("${fortune.automation.gemini.image-size:}")
-	private String imageSize;
+	@Value("${spring.ai.google.genai.chat.options.model:}")
+	private String textModel;
 
 	@Override
 	public FortuneProvider supports() {
@@ -63,13 +63,45 @@ public class GeminiFortuneClient implements FortuneTextGenerator, FortuneImageGe
 		assertApiKeyConfigured();
 
 		String prompt = fortunePromptService.buildMonthlyPrompt(targetMonth);
-		String jsonText = callGeminiTextGeneration(prompt);
+		String jsonText;
+		try {
+			jsonText = callGeminiTextGeneration(prompt);
+			fortuneAiCallLogService.recordSuccess(
+				FortuneProvider.GEMINI,
+				FortuneAiCallType.TEXT,
+				targetMonth,
+				null,
+				textModel,
+				prompt,
+				jsonText
+			);
+		} catch (Exception e) {
+			fortuneAiCallLogService.recordFailure(
+				FortuneProvider.GEMINI,
+				FortuneAiCallType.TEXT,
+				targetMonth,
+				null,
+				textModel,
+				prompt,
+				e.getMessage()
+			);
+			throw e;
+		}
 
+		return parseMonthlyFortunes(targetMonth, jsonText);
+	}
+
+	List<GeneratedFortunePayload> parseMonthlyFortunes(
+		java.time.YearMonth targetMonth,
+		String jsonText
+	) {
 		try {
 			FortuneEnvelope envelope = objectMapper.readValue(jsonText, FortuneEnvelope.class);
 			return fortunePromptService.validateFortunes(targetMonth, envelope.fortunes());
-		} catch (Exception e) {
+		} catch (JsonProcessingException e) {
 			throw new IllegalStateException("Gemini 운세 응답을 파싱하지 못했습니다.", e);
+		} catch (Exception e) {
+			throw new IllegalStateException("Gemini 운세 응답 검증에 실패했습니다: " + e.getMessage(), e);
 		}
 	}
 
@@ -78,15 +110,39 @@ public class GeminiFortuneClient implements FortuneTextGenerator, FortuneImageGe
 		assertApiKeyConfigured();
 
 		String prompt = fortunePromptService.buildImagePrompt(fortune);
-		GeminiImageRequest requestBody = buildImageGenerationRequest(prompt);
-		JsonNode response = callGeminiImageGeneration(requestBody);
-		InlineImage inlineImage = extractFirstInlineImage(response);
+		String model = DEFAULT_IMAGE_MODEL;
+		try {
+			GeminiImageRequest requestBody = buildImageGenerationRequest(prompt);
+			JsonNode response = callGeminiImageGeneration(requestBody);
+			InlineImage inlineImage = extractFirstInlineImage(response);
+			byte[] imageBytes = Base64.getDecoder().decode(inlineImage.base64Data());
 
-		return new GeneratedImagePayload(
-			Base64.getDecoder().decode(inlineImage.base64Data()),
-			inlineImage.mimeType(),
-			prompt
-		);
+			fortuneAiCallLogService.recordSuccess(
+				FortuneProvider.GEMINI,
+				FortuneAiCallType.IMAGE,
+				null,
+				fortune.getTargetDate(),
+				model,
+				prompt,
+				summarizeImageResponse(response)
+			);
+			return new GeneratedImagePayload(
+				imageBytes,
+				inlineImage.mimeType(),
+				prompt
+			);
+		} catch (Exception e) {
+			fortuneAiCallLogService.recordFailure(
+				FortuneProvider.GEMINI,
+				FortuneAiCallType.IMAGE,
+				null,
+				fortune.getTargetDate(),
+				model,
+				prompt,
+				e.getMessage()
+			);
+			throw e;
+		}
 	}
 
 	private JsonNode callGeminiImageGeneration(GeminiImageRequest requestBody) {
@@ -133,7 +189,7 @@ public class GeminiFortuneClient implements FortuneTextGenerator, FortuneImageGe
 
 	GeminiImageRequest buildImageGenerationRequest(String prompt) {
 		return new GeminiImageRequest(
-			resolveImageModel(),
+			DEFAULT_IMAGE_MODEL,
 			List.of(
 				GeminiInputPart.text(prompt),
 				resolveReferenceImagePart()
@@ -141,8 +197,8 @@ public class GeminiFortuneClient implements FortuneTextGenerator, FortuneImageGe
 			new GeminiImageResponseFormat(
 				"image",
 				DEFAULT_IMAGE_MIME_TYPE,
-				resolveImageAspectRatio(),
-				StringUtils.hasText(imageSize) ? imageSize : null
+				DEFAULT_IMAGE_ASPECT_RATIO,
+				null
 			)
 		);
 	}
@@ -191,14 +247,6 @@ public class GeminiFortuneClient implements FortuneTextGenerator, FortuneImageGe
 			}
 		}
 		throw new IllegalStateException("Gemini 이미지 응답에서 이미지 데이터를 찾지 못했습니다.");
-	}
-
-	private String resolveImageModel() {
-		return hasText(imageModel) ? imageModel : DEFAULT_IMAGE_MODEL;
-	}
-
-	private String resolveImageAspectRatio() {
-		return hasText(imageAspectRatio) ? imageAspectRatio : DEFAULT_IMAGE_ASPECT_RATIO;
 	}
 
 	private void assertApiKeyConfigured() {
@@ -261,6 +309,43 @@ public class GeminiFortuneClient implements FortuneTextGenerator, FortuneImageGe
 			}
 		}
 		return null;
+	}
+
+	private String summarizeImageResponse(JsonNode response) {
+		JsonNode sanitized = response.deepCopy();
+		omitImageData(sanitized);
+		return sanitized.toString();
+	}
+
+	private void omitImageData(JsonNode node) {
+		if (node == null || node.isMissingNode() || node.isNull()) {
+			return;
+		}
+		if (node.isObject()) {
+			ObjectNode objectNode = (ObjectNode)node;
+			Iterator<Entry<String, JsonNode>> fields = objectNode.fields();
+			while (fields.hasNext()) {
+				Entry<String, JsonNode> field = fields.next();
+				if (isImageDataField(field.getKey(), field.getValue())) {
+					objectNode.put(field.getKey(), "[omitted]");
+				} else {
+					omitImageData(field.getValue());
+				}
+			}
+			return;
+		}
+		if (node.isArray()) {
+			for (JsonNode child : node) {
+				omitImageData(child);
+			}
+		}
+	}
+
+	private boolean isImageDataField(
+		String fieldName,
+		JsonNode value
+	) {
+		return "b64_json".equals(fieldName) || ("data".equals(fieldName) && value.isTextual());
 	}
 
 	private boolean hasText(String value) {
