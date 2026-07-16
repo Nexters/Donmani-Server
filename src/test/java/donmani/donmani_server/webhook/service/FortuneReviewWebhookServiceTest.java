@@ -1,6 +1,7 @@
 package donmani.donmani_server.webhook.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -21,6 +22,13 @@ class FortuneReviewWebhookServiceTest {
 		WebClient.builder().build(),
 		new ObjectMapper()
 	);
+
+	@Test
+	void sendMonthlyFortuneImagesRequiresFortuneWebhookUrl() {
+		assertThatThrownBy(() -> webhookService.sendMonthlyFortuneImages(List.of()))
+			.isInstanceOf(IllegalStateException.class)
+			.hasMessageContaining("discord.fortune.webhook.url 설정이 필요합니다.");
+	}
 
 	@Test
 	void buildMonthlyFortuneImageMessagesUsesDateAndEmbedImageOnly() {

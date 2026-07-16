@@ -35,7 +35,7 @@ public class FortuneReviewWebhookService {
 	private final WebClient webClient;
 	private final ObjectMapper objectMapper;
 
-	@Value("${discord.webhook.url:}")
+	@Value("${discord.fortune.webhook.url:}")
 	private String webhookUrl;
 
 	// 월간 운세 텍스트 검수본을 한두 개의 긴 description embed로 묶어 보낸다.
@@ -225,7 +225,7 @@ public class FortuneReviewWebhookService {
 
 	private void assertWebhookConfigured() {
 		if (!StringUtils.hasText(webhookUrl) || "default-value".equals(webhookUrl)) {
-			throw new IllegalStateException("discord.webhook.url 설정이 필요합니다.");
+			throw new IllegalStateException("discord.fortune.webhook.url 설정이 필요합니다.");
 		}
 	}
 

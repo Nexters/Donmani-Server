@@ -2,11 +2,16 @@ package donmani.donmani_server.fcm.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Base64;
 
 import org.junit.jupiter.api.Test;
@@ -24,18 +29,49 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import donmani.donmani_server.fcm.entity.Fortune;
+import donmani.donmani_server.fcm.entity.FortuneAiCallType;
+import donmani.donmani_server.fcm.entity.FortuneProvider;
 import reactor.core.publisher.Mono;
 
 class GeminiFortuneClientTest {
 
-	private final ObjectMapper objectMapper = new ObjectMapper();
+	private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+
+	@Test
+	void parseMonthlyFortunesSeparatesValidationFailureFromJsonParsingFailure() {
+		GeminiFortuneClient client = clientWithRealPromptService();
+		String jsonText = """
+			{
+			  "fortunes": [
+			    {
+			      "targetDate": "2026-07-01",
+			      "title": "title",
+			      "subtitle": "subtitle",
+			      "content": "content",
+			      "item": "item"
+			    }
+			  ]
+			}
+			""";
+
+		assertThatThrownBy(() -> client.parseMonthlyFortunes(YearMonth.of(2026, 12), jsonText))
+			.isInstanceOf(IllegalStateException.class)
+			.hasMessageContaining("Gemini 운세 응답 검증에 실패했습니다")
+			.hasMessageContaining("생성된 운세 개수가 대상 월 일수와 맞지 않습니다.");
+	}
+
+	@Test
+	void parseMonthlyFortunesKeepsJsonParsingFailureMessage() {
+		GeminiFortuneClient client = clientWithRealPromptService();
+
+		assertThatThrownBy(() -> client.parseMonthlyFortunes(YearMonth.of(2026, 12), "{"))
+			.isInstanceOf(IllegalStateException.class)
+			.hasMessageContaining("Gemini 운세 응답을 파싱하지 못했습니다.");
+	}
 
 	@Test
 	void buildImageGenerationRequestUsesNanoBananaInteractionsShape() throws Exception {
 		GeminiFortuneClient client = clientWithResponse("{}");
-		ReflectionTestUtils.setField(client, "imageModel", "");
-		ReflectionTestUtils.setField(client, "imageAspectRatio", "4:5");
-		ReflectionTestUtils.setField(client, "imageSize", "");
 
 		JsonNode request = objectMapper.valueToTree(client.buildImageGenerationRequest("image prompt"));
 
@@ -50,27 +86,10 @@ class GeminiFortuneClientTest {
 	@Test
 	void buildImageGenerationRequestIncludesDefaultReferenceImage() throws Exception {
 		GeminiFortuneClient client = clientWithResponse("{}");
-		ReflectionTestUtils.setField(client, "imageModel", "");
-		ReflectionTestUtils.setField(client, "imageAspectRatio", "4:5");
-		ReflectionTestUtils.setField(client, "imageSize", "");
 
 		JsonNode request = objectMapper.valueToTree(client.buildImageGenerationRequest("image prompt"));
 
 		assertReferenceImageInput(request, "image prompt");
-	}
-
-	@Test
-	void buildImageGenerationRequestIncludesImageSizeOnlyWhenConfigured() {
-		GeminiFortuneClient client = clientWithResponse("{}");
-		ReflectionTestUtils.setField(client, "imageModel", "gemini-3.1-flash-image");
-		ReflectionTestUtils.setField(client, "imageAspectRatio", "16:9");
-		ReflectionTestUtils.setField(client, "imageSize", "1K");
-
-		JsonNode request = objectMapper.valueToTree(client.buildImageGenerationRequest("image prompt"));
-
-		assertThat(request.path("model").asText()).isEqualTo("gemini-3.1-flash-image");
-		assertThat(request.path("response_format").path("aspect_ratio").asText()).isEqualTo("16:9");
-		assertThat(request.path("response_format").path("image_size").asText()).isEqualTo("1K");
 	}
 
 	@Test
@@ -84,9 +103,6 @@ class GeminiFortuneClientTest {
 			}
 			""".formatted(imageBase64));
 		ReflectionTestUtils.setField(client, "apiKey", "test-key");
-		ReflectionTestUtils.setField(client, "imageModel", "");
-		ReflectionTestUtils.setField(client, "imageAspectRatio", "4:5");
-		ReflectionTestUtils.setField(client, "imageSize", "");
 		when(promptService(client).buildImagePrompt(any(Fortune.class))).thenReturn("image prompt");
 
 		GeneratedImagePayload payload = client.generateImage(fortune());
@@ -94,6 +110,15 @@ class GeminiFortuneClientTest {
 		assertThat(payload.bytes()).containsExactly(1, 2, 3);
 		assertThat(payload.mimeType()).isEqualTo("image/jpeg");
 		assertThat(payload.prompt()).isEqualTo("image prompt");
+		verify(logService(client)).recordSuccess(
+			eq(FortuneProvider.GEMINI),
+			eq(FortuneAiCallType.IMAGE),
+			isNull(),
+			eq(LocalDate.of(2026, 7, 15)),
+			eq("gemini-3.1-flash-lite-image"),
+			eq("image prompt"),
+			argThat(response -> response.contains("\"data\":\"[omitted]\""))
+		);
 	}
 
 	@Test
@@ -111,9 +136,6 @@ class GeminiFortuneClientTest {
 			}
 			""".formatted(imageBase64));
 		ReflectionTestUtils.setField(client, "apiKey", "test-key");
-		ReflectionTestUtils.setField(client, "imageModel", "");
-		ReflectionTestUtils.setField(client, "imageAspectRatio", "4:5");
-		ReflectionTestUtils.setField(client, "imageSize", "");
 		when(promptService(client).buildImagePrompt(any(Fortune.class))).thenReturn("image prompt");
 
 		GeneratedImagePayload payload = client.generateImage(fortune());
@@ -137,19 +159,38 @@ class GeminiFortuneClientTest {
 				"""
 		);
 		ReflectionTestUtils.setField(client, "apiKey", "test-key");
-		ReflectionTestUtils.setField(client, "imageModel", "");
-		ReflectionTestUtils.setField(client, "imageAspectRatio", "4:5");
-		ReflectionTestUtils.setField(client, "imageSize", "");
 		when(promptService(client).buildImagePrompt(any(Fortune.class))).thenReturn("image prompt");
 
 		assertThatThrownBy(() -> client.generateImage(fortune()))
 			.isInstanceOf(IllegalStateException.class)
 			.hasMessageContaining("status=400")
 			.hasMessageContaining("Unsupported response format");
+		verify(logService(client)).recordFailure(
+			eq(FortuneProvider.GEMINI),
+			eq(FortuneAiCallType.IMAGE),
+			isNull(),
+			eq(LocalDate.of(2026, 7, 15)),
+			eq("gemini-3.1-flash-lite-image"),
+			eq("image prompt"),
+			argThat(error -> error.contains("Unsupported response format"))
+		);
 	}
 
 	private GeminiFortuneClient clientWithResponse(String responseBody) {
 		return clientWithStatus(HttpStatus.OK, responseBody);
+	}
+
+	private GeminiFortuneClient clientWithRealPromptService() {
+		WebClient webClient = WebClient.builder()
+			.exchangeFunction(request -> Mono.just(ClientResponse.create(HttpStatus.OK).build()))
+			.build();
+		return new GeminiFortuneClient(
+			webClient,
+			org.mockito.Mockito.mock(ChatModel.class),
+			objectMapper,
+			new FortunePromptService(),
+			org.mockito.Mockito.mock(FortuneAiCallLogService.class)
+		);
 	}
 
 	private GeminiFortuneClient clientWithStatus(
@@ -165,12 +206,17 @@ class GeminiFortuneClientTest {
 				.body(responseBody)
 				.build()))
 			.build();
-		return new GeminiFortuneClient(webClient, org.mockito.Mockito.mock(ChatModel.class), objectMapper,
-			org.mockito.Mockito.mock(FortunePromptService.class));
+		GeminiFortuneClient client = new GeminiFortuneClient(webClient, org.mockito.Mockito.mock(ChatModel.class), objectMapper,
+			org.mockito.Mockito.mock(FortunePromptService.class), org.mockito.Mockito.mock(FortuneAiCallLogService.class));
+		return client;
 	}
 
 	private FortunePromptService promptService(GeminiFortuneClient client) {
 		return (FortunePromptService)ReflectionTestUtils.getField(client, "fortunePromptService");
+	}
+
+	private FortuneAiCallLogService logService(GeminiFortuneClient client) {
+		return (FortuneAiCallLogService)ReflectionTestUtils.getField(client, "fortuneAiCallLogService");
 	}
 
 	private void assertReferenceImageInput(JsonNode request, String prompt) throws Exception {
