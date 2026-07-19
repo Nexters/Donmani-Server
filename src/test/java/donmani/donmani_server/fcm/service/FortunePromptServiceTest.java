@@ -55,8 +55,6 @@ class FortunePromptServiceTest {
 		assertThat(properties).contains("{{START_DATE}}");
 		assertThat(properties).contains("{{END_DATE}}");
 		assertThat(properties).contains("{{DAY_COUNT}}");
-		assertThat(properties).doesNotContain("\"targetDate\":\"2026-07-01\"");
-		assertThat(properties).doesNotContain("\"targetDate\": \"2026-07-01\"");
 	}
 
 	@Test

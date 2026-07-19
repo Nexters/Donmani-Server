@@ -3,6 +3,8 @@ package donmani.donmani_server.fcm.service;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +41,30 @@ public class FCMService {
 		User user = userRepository.findByIdentifier(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
 		String removeQuotesToken = removeQuotes(token);
+		Optional<FCMToken> tokenOwner = fcmTokenRepository.findByToken(removeQuotesToken);
+
+		if (tokenOwner.isPresent()) {
+			FCMToken existingToken = tokenOwner.get();
+			if (isSameUser(existingToken.getUser(), user)) {
+				return;
+			}
+
+			Optional<FCMToken> currentUserToken = fcmTokenRepository.findByUser(user);
+			if (currentUserToken.isPresent()) {
+				fcmTokenRepository.delete(existingToken);
+				fcmTokenRepository.flush();
+
+				FCMToken fcmToken = currentUserToken.get();
+				fcmToken.setToken(removeQuotesToken);
+				fcmTokenRepository.save(fcmToken);
+				return;
+			}
+
+			existingToken.setUser(user);
+			fcmTokenRepository.save(existingToken);
+			return;
+		}
+
 		FCMToken fcmToken = fcmTokenRepository.findByUser(user)
 			.map(existingToken -> {
 				existingToken.setToken(removeQuotesToken);
@@ -50,6 +76,16 @@ public class FCMService {
 			);
 
 		fcmTokenRepository.save(fcmToken);
+	}
+
+	private boolean isSameUser(User left, User right) {
+		if (left == null || right == null) {
+			return false;
+		}
+		if (left.getId() != null && right.getId() != null) {
+			return Objects.equals(left.getId(), right.getId());
+		}
+		return Objects.equals(left.getUserKey(), right.getUserKey());
 	}
 
 	private String removeQuotes(String input) {
