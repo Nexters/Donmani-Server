@@ -36,12 +36,12 @@ class FCMControllerTest {
 	private FortuneService fortuneService;
 
 	@Test
-	void getDailyFortuneUsesFortunesPath() throws NoSuchMethodException {
+	void getDailyFortuneUsesFortunePath() throws NoSuchMethodException {
 		GetMapping getMapping = FCMController.class
 			.getMethod("getDailyFortuneV1", String.class)
 			.getAnnotation(GetMapping.class);
 
-		assertThat(Arrays.asList(getMapping.value())).containsExactly("/fortunes/{userKey}");
+		assertThat(Arrays.asList(getMapping.value())).containsExactly("/fortune/{userKey}");
 	}
 
 	@Test
@@ -50,7 +50,7 @@ class FCMControllerTest {
 			.getMethod("getFortuneHistoriesV1", String.class, String.class, String.class)
 			.getAnnotation(GetMapping.class);
 
-		assertThat(Arrays.asList(getMapping.value())).containsExactly("/fortunes/list/{userKey}");
+		assertThat(Arrays.asList(getMapping.value())).containsExactly("/fortune/list/{userKey}");
 	}
 
 	@Test
