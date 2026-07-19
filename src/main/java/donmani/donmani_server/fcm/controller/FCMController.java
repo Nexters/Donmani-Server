@@ -68,7 +68,7 @@ public class FCMController {
 		return ResponseEntity.ok("SUCCESS"); // TODO : 응답 포맷팅 작업에서 수정 필요
 	}
 
-	@GetMapping("/fortunes/{userKey}")
+	@GetMapping("/fortune/{userKey}")
 	public ResponseEntity<HttpStatusDTO<FortuneResponseV1>> getDailyFortuneV1(
 		@PathVariable String userKey
 	) {
@@ -82,7 +82,7 @@ public class FCMController {
 		}
 	}
 
-	@GetMapping("/fortunes/list/{userKey}")
+	@GetMapping("/fortune/list/{userKey}")
 	public ResponseEntity<HttpStatusDTO<List<FortuneHistoryResponseV1>>> getFortuneHistoriesV1(
 		@PathVariable String userKey,
 		@RequestParam(required = false) String startDate,
