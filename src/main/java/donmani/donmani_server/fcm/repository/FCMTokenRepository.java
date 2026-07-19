@@ -15,6 +15,8 @@ import donmani.donmani_server.user.entity.User;
 public interface FCMTokenRepository extends JpaRepository<FCMToken, Long> {
 	Optional<FCMToken> findByUser(User user);
 
+	Optional<FCMToken> findByToken(String token);
+
 	@Query(value = "\n"
 		+ "SELECT token\n"
 		+ "FROM fcmtoken\n"
