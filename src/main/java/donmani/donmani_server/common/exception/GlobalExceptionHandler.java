@@ -81,11 +81,10 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleNoResourceFound(
+    public ResponseEntity<Void> handleNoResourceFound(
         NoResourceFoundException ex
     ) {
-        Map<String, Object> body = buildBody(HttpStatus.NOT_FOUND, "요청한 리소스를 찾을 수 없습니다.");
-        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+        return ResponseEntity.notFound().build();
     }
 
     @ExceptionHandler(Exception.class)
