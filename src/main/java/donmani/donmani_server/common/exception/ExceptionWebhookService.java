@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.http.client.MultipartBodyBuilder;
@@ -102,6 +103,9 @@ public class ExceptionWebhookService {
 		if (statusCode < 400 || statusCode >= 600) {
 			return false;
 		}
+		if (statusCode == HttpStatus.NOT_FOUND.value()) {
+			return false;
+		}
 		String path = request.getRequestURI();
 		return !isExcludedPath(path);
 	}
@@ -137,7 +141,7 @@ public class ExceptionWebhookService {
 		String responseMessage
 	) {
 		return """
-			**Donmani API EXCEPTION**
+			*🚨 Donmani API EXCEPTION 🚨*
 
 			**STATUS**
 			%s

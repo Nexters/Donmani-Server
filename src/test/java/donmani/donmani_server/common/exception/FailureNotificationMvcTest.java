@@ -28,6 +28,8 @@ import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import donmani.donmani_server.common.httpStatus.HttpStatusDTO;
 import reactor.core.publisher.Mono;
@@ -137,6 +139,31 @@ class FailureNotificationMvcTest {
 			.andExpect(jsonPath("$.responseData").doesNotExist());
 
 		assertThat(requestCount).hasValue(1);
+	}
+
+	@Test
+	void noResourceFoundReturns404WithoutWebhook() throws Exception {
+		AtomicInteger requestCount = new AtomicInteger();
+		MockMvc mockMvc = mockMvc(requestCount);
+
+		mockMvc.perform(get("/geoserver/web"))
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.status").value(404))
+			.andExpect(jsonPath("$.message").value("요청한 리소스를 찾을 수 없습니다."));
+
+		assertThat(requestCount).hasValue(0);
+	}
+
+	@Test
+	void responseStatusNotFoundDoesNotSendWebhook() throws Exception {
+		AtomicInteger requestCount = new AtomicInteger();
+		MockMvc mockMvc = mockMvc(requestCount);
+
+		mockMvc.perform(get("/api/v1/test/not-found"))
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.status").value(404));
+
+		assertThat(requestCount).hasValue(0);
 	}
 
 	@Test
@@ -264,6 +291,16 @@ class FailureNotificationMvcTest {
 		@GetMapping("/api/v1/test/api-dynamic-message")
 		String apiDynamicMessage() {
 			throw ApiException.of(ApiErrorCode.AUTOMATION_BAD_REQUEST, "targetMonth는 yyyy-MM 형식이어야 합니다.");
+		}
+
+		@GetMapping("/geoserver/web")
+		String noResourceFound() throws NoResourceFoundException {
+			throw new NoResourceFoundException(HttpMethod.GET, "geoserver/web");
+		}
+
+		@GetMapping("/api/v1/test/not-found")
+		String responseStatusNotFound() {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "missing");
 		}
 
 		@PostMapping("/api/v1/test/body-exception")

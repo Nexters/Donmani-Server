@@ -58,7 +58,7 @@ class ExceptionWebhookServiceTest {
 		assertThat(content).contains("GET /api/v1/users/{userKey}?token=***&month=2026-07&secretKey=***");
 		assertThat(content).contains("server failed");
 		assertThat(content).contains("java.lang.IllegalStateException: broken");
-		assertThat(content).contains("**body**");
+		assertThat(content).contains("**BODY**");
 		assertThat(content).doesNotContain("stackTop");
 		assertThat(content).doesNotContain("token=abc");
 		assertThat(content).doesNotContain("secretKey=hidden");
@@ -92,8 +92,8 @@ class ExceptionWebhookServiceTest {
 		assertThat(content).doesNotContain("pw");
 		assertThat(content).doesNotContain("key-1");
 		assertThat(content).doesNotContain("token-1");
-		assertThat(content.indexOf("**request**")).isLessThan(content.indexOf("**body**"));
-		assertThat(content.indexOf("**body**")).isLessThan(content.indexOf("**message**"));
+		assertThat(content.indexOf("**REQUEST**")).isLessThan(content.indexOf("**MESSAGE**"));
+		assertThat(content.indexOf("**MESSAGE**")).isLessThan(content.indexOf("**BODY**"));
 	}
 
 	@Test
@@ -131,8 +131,8 @@ class ExceptionWebhookServiceTest {
 		String body = renderedRequest.getBodyAsString().block();
 		assertThat(renderedRequest.getHeaders().getContentType().toString()).startsWith("multipart/form-data");
 		assertThat(body).contains("name=\"payload_json\"");
-		assertThat(body).contains("Donmani API Exception");
-		assertThat(body).contains("**body**");
+		assertThat(body).contains("Donmani API EXCEPTION");
+		assertThat(body).contains("**BODY**");
 		assertThat(body).doesNotContain("stackTop");
 		assertThat(body).contains("name=\"files[0]\"");
 		assertThat(body).contains("filename=\"exception-stacktrace.log\"");
@@ -152,7 +152,7 @@ class ExceptionWebhookServiceTest {
 		MockClientHttpRequest renderedRequest = render(capturedRequest.get());
 		String body = renderedRequest.getBodyAsString().block();
 		assertThat(renderedRequest.getHeaders().getContentType()).isEqualTo(org.springframework.http.MediaType.APPLICATION_JSON);
-		assertThat(body).contains("Donmani API Exception");
+		assertThat(body).contains("Donmani API EXCEPTION");
 		assertThat(body).contains("body failed");
 		assertThat(body).doesNotContain("files[0]");
 		assertThat(body).doesNotContain("exception-stacktrace.log");
