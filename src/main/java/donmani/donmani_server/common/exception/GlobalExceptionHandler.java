@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import donmani.donmani_server.common.httpStatus.HttpStatusDTO;
 import jakarta.servlet.http.HttpServletRequest;
@@ -77,6 +78,14 @@ public class GlobalExceptionHandler {
         exceptionWebhookService.notifyOnce(request, status.value(), ex, message);
         Map<String, Object> body = buildBody(status, message);
         return new ResponseEntity<>(body, status);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNoResourceFound(
+        NoResourceFoundException ex
+    ) {
+        Map<String, Object> body = buildBody(HttpStatus.NOT_FOUND, "요청한 리소스를 찾을 수 없습니다.");
+        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(Exception.class)
