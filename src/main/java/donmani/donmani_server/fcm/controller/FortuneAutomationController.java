@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import donmani.donmani_server.common.exception.ApiErrorCode;
+import donmani.donmani_server.common.exception.ApiException;
 import donmani.donmani_server.common.httpStatus.HttpStatusDTO;
 import donmani.donmani_server.fcm.dto.FortuneAutomationResponse;
 import donmani.donmani_server.fcm.service.FortuneAutomationAccessService;
@@ -30,16 +32,13 @@ public class FortuneAutomationController {
 		@RequestParam(required = false) String provider,
 		@RequestParam(defaultValue = "false") boolean force
 	) {
-		if (!fortuneAutomationAccessService.isAuthorized(automationToken)) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-				.body(HttpStatusDTO.response(HttpStatus.UNAUTHORIZED.value(), "인증 실패", null));
-		}
+		assertAuthorized(automationToken);
 
 		try {
 			FortuneAutomationResponse response = fortuneAutomationService.generateFortunes(targetMonth, force, provider);
 			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.OK.value(), "성공", response));
 		} catch (IllegalArgumentException | IllegalStateException e) {
-			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.BAD_REQUEST.value(), e.getMessage(), null));
+			throw ApiException.of(ApiErrorCode.AUTOMATION_BAD_REQUEST, e.getMessage(), e);
 		}
 	}
 
@@ -48,16 +47,13 @@ public class FortuneAutomationController {
 		@RequestHeader(value = "X-Automation-Token", required = false) String automationToken,
 		@RequestParam String targetMonth
 	) {
-		if (!fortuneAutomationAccessService.isAuthorized(automationToken)) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-				.body(HttpStatusDTO.response(HttpStatus.UNAUTHORIZED.value(), "인증 실패", null));
-		}
+		assertAuthorized(automationToken);
 
 		try {
 			FortuneAutomationResponse response = fortuneAutomationService.sendFortuneReviewWebhook(targetMonth);
 			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.OK.value(), "성공", response));
 		} catch (IllegalArgumentException | IllegalStateException e) {
-			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.BAD_REQUEST.value(), e.getMessage(), null));
+			throw ApiException.of(ApiErrorCode.AUTOMATION_BAD_REQUEST, e.getMessage(), e);
 		}
 	}
 
@@ -66,16 +62,13 @@ public class FortuneAutomationController {
 		@RequestHeader(value = "X-Automation-Token", required = false) String automationToken,
 		@RequestParam String targetMonth
 	) {
-		if (!fortuneAutomationAccessService.isAuthorized(automationToken)) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-				.body(HttpStatusDTO.response(HttpStatus.UNAUTHORIZED.value(), "인증 실패", null));
-		}
+		assertAuthorized(automationToken);
 
 		try {
 			FortuneAutomationResponse response = fortuneAutomationService.sendFortuneWithImageWebhook(targetMonth);
 			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.OK.value(), "성공", response));
 		} catch (IllegalArgumentException | IllegalStateException e) {
-			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.BAD_REQUEST.value(), e.getMessage(), null));
+			throw ApiException.of(ApiErrorCode.AUTOMATION_BAD_REQUEST, e.getMessage(), e);
 		}
 	}
 
@@ -84,16 +77,13 @@ public class FortuneAutomationController {
 		@RequestHeader(value = "X-Automation-Token", required = false) String automationToken,
 		@RequestParam String targetMonth
 	) {
-		if (!fortuneAutomationAccessService.isAuthorized(automationToken)) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-				.body(HttpStatusDTO.response(HttpStatus.UNAUTHORIZED.value(), "인증 실패", null));
-		}
+		assertAuthorized(automationToken);
 
 		try {
 			FortuneAutomationResponse response = fortuneAutomationService.approve(targetMonth);
 			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.OK.value(), "성공", response));
 		} catch (IllegalArgumentException | IllegalStateException e) {
-			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.BAD_REQUEST.value(), e.getMessage(), null));
+			throw ApiException.of(ApiErrorCode.AUTOMATION_BAD_REQUEST, e.getMessage(), e);
 		}
 	}
 
@@ -104,16 +94,13 @@ public class FortuneAutomationController {
 		@RequestParam(required = false) String targetDate,
 		@RequestParam(required = false) String provider
 	) {
-		if (!fortuneAutomationAccessService.isAuthorized(automationToken)) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-				.body(HttpStatusDTO.response(HttpStatus.UNAUTHORIZED.value(), "인증 실패", null));
-		}
+		assertAuthorized(automationToken);
 
 		try {
 			FortuneAutomationResponse response = fortuneAutomationService.generateImages(targetMonth, targetDate, provider);
 			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.OK.value(), "성공", response));
 		} catch (IllegalArgumentException | IllegalStateException e) {
-			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.BAD_REQUEST.value(), e.getMessage(), null));
+			throw ApiException.of(ApiErrorCode.AUTOMATION_BAD_REQUEST, e.getMessage(), e);
 		}
 	}
 
@@ -122,16 +109,19 @@ public class FortuneAutomationController {
 		@RequestHeader(value = "X-Automation-Token", required = false) String automationToken,
 		@RequestParam String targetMonth
 	) {
-		if (!fortuneAutomationAccessService.isAuthorized(automationToken)) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-				.body(HttpStatusDTO.response(HttpStatus.UNAUTHORIZED.value(), "인증 실패", null));
-		}
+		assertAuthorized(automationToken);
 
 		try {
 			FortuneAutomationResponse response = fortuneAutomationService.getStatus(targetMonth);
 			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.OK.value(), "성공", response));
 		} catch (IllegalArgumentException e) {
-			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.BAD_REQUEST.value(), e.getMessage(), null));
+			throw ApiException.of(ApiErrorCode.AUTOMATION_BAD_REQUEST, e.getMessage(), e);
+		}
+	}
+
+	private void assertAuthorized(String automationToken) {
+		if (!fortuneAutomationAccessService.isAuthorized(automationToken)) {
+			throw ApiException.of(ApiErrorCode.AUTOMATION_UNAUTHORIZED);
 		}
 	}
 }

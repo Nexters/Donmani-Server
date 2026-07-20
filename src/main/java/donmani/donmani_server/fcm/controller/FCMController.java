@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import donmani.donmani_server.common.exception.ApiErrorCode;
+import donmani.donmani_server.common.exception.ApiException;
 import donmani.donmani_server.common.httpStatus.HttpStatusDTO;
 import donmani.donmani_server.fcm.dto.FortuneHistoryResponseV1;
 import donmani.donmani_server.fcm.dto.FortuneRequestV1;
@@ -78,7 +80,7 @@ public class FCMController {
 
 			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.OK.value(), "성공", fortuneResponseV1));
 		} catch (EntityNotFoundException e) {
-			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.NOT_FOUND.value(), "운세 정보 없음", null));
+			throw ApiException.of(ApiErrorCode.FORTUNE_NOT_FOUND, e);
 		}
 	}
 
@@ -99,7 +101,7 @@ public class FCMController {
 
 			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.OK.value(), "성공", response));
 		} catch (DateTimeParseException | IllegalArgumentException e) {
-			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.BAD_REQUEST.value(), "잘못된 요청", null));
+			throw ApiException.of(ApiErrorCode.BAD_REQUEST, e);
 		}
 	}
 
@@ -113,7 +115,7 @@ public class FCMController {
 
 			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.OK.value(), null, null));
 		} catch (EntityNotFoundException e) {
-			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.NOT_FOUND.value(), null, null));
+			throw ApiException.of(ApiErrorCode.FORTUNE_READ_NOT_FOUND, e);
 		}
 	}
 

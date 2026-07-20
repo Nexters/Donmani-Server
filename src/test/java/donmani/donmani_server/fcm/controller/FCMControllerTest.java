@@ -18,12 +18,25 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.env.MockEnvironment;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import donmani.donmani_server.common.exception.ExceptionWebhookService;
+import donmani.donmani_server.common.exception.FailureResponseBodyAdvice;
+import donmani.donmani_server.common.exception.GlobalExceptionHandler;
 import donmani.donmani_server.common.httpStatus.HttpStatusDTO;
 import donmani.donmani_server.fcm.dto.FortuneHistoryResponseV1;
 import donmani.donmani_server.fcm.service.FCMService;
 import donmani.donmani_server.fcm.service.FortuneService;
+import reactor.core.publisher.Mono;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
 class FCMControllerTest {
@@ -139,75 +152,96 @@ class FCMControllerTest {
 	}
 
 	@Test
-	void getFortuneHistoriesReturnsBadRequestEnvelopeWhenDateFormatIsInvalid() {
+	void getFortuneHistoriesReturnsBadRequestEnvelopeWhenDateFormatIsInvalid() throws Exception {
 		FCMController controller = new FCMController(fcmService, fortuneService);
+		MockMvc mockMvc = mockMvc(controller);
 
-		ResponseEntity<HttpStatusDTO<List<FortuneHistoryResponseV1>>> response =
-			controller.getFortuneHistoriesV1("user-1234", "20260701", "2026-07-31");
+		mockMvc.perform(get("/api/v1/fortune/list/user-1234")
+				.param("startDate", "20260701")
+				.param("endDate", "2026-07-31"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.statusCode").value(HttpStatus.BAD_REQUEST.value()))
+			.andExpect(jsonPath("$.responseMessage").value("잘못된 요청"))
+			.andExpect(jsonPath("$.responseData").doesNotExist());
 
 		verify(fortuneService, never()).getFortuneHistories(
 			org.mockito.ArgumentMatchers.any(),
 			org.mockito.ArgumentMatchers.any(),
 			org.mockito.ArgumentMatchers.any()
 		);
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(response.getBody().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-		assertThat(response.getBody().getResponseMessage()).isEqualTo("잘못된 요청");
-		assertThat(response.getBody().getResponseData()).isNull();
 	}
 
 	@Test
-	void getFortuneHistoriesReturnsBadRequestEnvelopeWhenStartDateIsAfterEndDate() {
+	void getFortuneHistoriesReturnsBadRequestEnvelopeWhenStartDateIsAfterEndDate() throws Exception {
 		FCMController controller = new FCMController(fcmService, fortuneService);
+		MockMvc mockMvc = mockMvc(controller);
 
-		ResponseEntity<HttpStatusDTO<List<FortuneHistoryResponseV1>>> response =
-			controller.getFortuneHistoriesV1("user-1234", "2026-07-31", "2026-07-01");
+		mockMvc.perform(get("/api/v1/fortune/list/user-1234")
+				.param("startDate", "2026-07-31")
+				.param("endDate", "2026-07-01"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.statusCode").value(HttpStatus.BAD_REQUEST.value()))
+			.andExpect(jsonPath("$.responseMessage").value("잘못된 요청"))
+			.andExpect(jsonPath("$.responseData").doesNotExist());
 
 		verify(fortuneService, never()).getFortuneHistories(
 			org.mockito.ArgumentMatchers.any(),
 			org.mockito.ArgumentMatchers.any(),
 			org.mockito.ArgumentMatchers.any()
 		);
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(response.getBody().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-		assertThat(response.getBody().getResponseMessage()).isEqualTo("잘못된 요청");
-		assertThat(response.getBody().getResponseData()).isNull();
 	}
 
 	@Test
-	void getFortuneHistoriesReturnsBadRequestEnvelopeWhenOnlyStartDateIsProvided() {
+	void getFortuneHistoriesReturnsBadRequestEnvelopeWhenOnlyStartDateIsProvided() throws Exception {
 		FCMController controller = new FCMController(fcmService, fortuneService);
+		MockMvc mockMvc = mockMvc(controller);
 
-		ResponseEntity<HttpStatusDTO<List<FortuneHistoryResponseV1>>> response =
-			controller.getFortuneHistoriesV1("user-1234", "2026-07-01", null);
+		mockMvc.perform(get("/api/v1/fortune/list/user-1234")
+				.param("startDate", "2026-07-01"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.statusCode").value(HttpStatus.BAD_REQUEST.value()))
+			.andExpect(jsonPath("$.responseMessage").value("잘못된 요청"))
+			.andExpect(jsonPath("$.responseData").doesNotExist());
 
 		verify(fortuneService, never()).getFortuneHistories(
 			org.mockito.ArgumentMatchers.any(),
 			org.mockito.ArgumentMatchers.any(),
 			org.mockito.ArgumentMatchers.any()
 		);
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(response.getBody().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-		assertThat(response.getBody().getResponseMessage()).isEqualTo("잘못된 요청");
-		assertThat(response.getBody().getResponseData()).isNull();
 	}
 
 	@Test
-	void getFortuneHistoriesReturnsBadRequestEnvelopeWhenOnlyEndDateIsProvided() {
+	void getFortuneHistoriesReturnsBadRequestEnvelopeWhenOnlyEndDateIsProvided() throws Exception {
 		FCMController controller = new FCMController(fcmService, fortuneService);
+		MockMvc mockMvc = mockMvc(controller);
 
-		ResponseEntity<HttpStatusDTO<List<FortuneHistoryResponseV1>>> response =
-			controller.getFortuneHistoriesV1("user-1234", null, "2026-07-31");
+		mockMvc.perform(get("/api/v1/fortune/list/user-1234")
+				.param("endDate", "2026-07-31"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.statusCode").value(HttpStatus.BAD_REQUEST.value()))
+			.andExpect(jsonPath("$.responseMessage").value("잘못된 요청"))
+			.andExpect(jsonPath("$.responseData").doesNotExist());
 
 		verify(fortuneService, never()).getFortuneHistories(
 			org.mockito.ArgumentMatchers.any(),
 			org.mockito.ArgumentMatchers.any(),
 			org.mockito.ArgumentMatchers.any()
 		);
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(response.getBody().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-		assertThat(response.getBody().getResponseMessage()).isEqualTo("잘못된 요청");
-		assertThat(response.getBody().getResponseData()).isNull();
+	}
+
+	private MockMvc mockMvc(FCMController controller) {
+		ExceptionWebhookService exceptionWebhookService = new ExceptionWebhookService(
+			WebClient.builder()
+				.exchangeFunction(request -> Mono.just(ClientResponse.create(HttpStatus.NO_CONTENT).build()))
+				.build(),
+			new MockEnvironment()
+		);
+		return MockMvcBuilders.standaloneSetup(controller)
+			.setControllerAdvice(
+				new GlobalExceptionHandler(exceptionWebhookService),
+				new FailureResponseBodyAdvice(exceptionWebhookService)
+			)
+			.build();
 	}
 
 	private FCMController controllerOn(LocalDate today) {
