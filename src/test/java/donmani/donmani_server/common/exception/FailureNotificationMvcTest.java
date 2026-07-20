@@ -3,6 +3,7 @@ package donmani.donmani_server.common.exception;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -148,8 +149,19 @@ class FailureNotificationMvcTest {
 
 		mockMvc.perform(get("/geoserver/web"))
 			.andExpect(status().isNotFound())
-			.andExpect(jsonPath("$.status").value(404))
-			.andExpect(jsonPath("$.message").value("요청한 리소스를 찾을 수 없습니다."));
+			.andExpect(content().string(""));
+
+		assertThat(requestCount).hasValue(0);
+	}
+
+	@Test
+	void noResourceFoundWithNonJsonAcceptReturns404WithoutWebhook() throws Exception {
+		AtomicInteger requestCount = new AtomicInteger();
+		MockMvc mockMvc = mockMvc(requestCount);
+
+		mockMvc.perform(get("/geoserver/web").accept(MediaType.TEXT_HTML))
+			.andExpect(status().isNotFound())
+			.andExpect(content().string(""));
 
 		assertThat(requestCount).hasValue(0);
 	}
