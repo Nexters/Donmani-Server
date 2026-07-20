@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import donmani.donmani_server.common.exception.ApiErrorCode;
+import donmani.donmani_server.common.exception.ApiException;
 import donmani.donmani_server.common.httpStatus.HttpStatusDTO;
 import donmani.donmani_server.expense.service.ExpenseService;
 import lombok.RequiredArgsConstructor;
@@ -37,8 +39,7 @@ public class ExpenseController {
 			ExpenseResponseDTO response = expenseService.getExpenses(userKey, year, month, false);
 			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.OK.value(), "성공", response));
 		} catch (IllegalArgumentException e) {
-			return ResponseEntity.ok(
-				HttpStatusDTO.response(HttpStatus.INTERNAL_SERVER_ERROR.value(), "유저 정보 없음", null));
+			throw ApiException.of(ApiErrorCode.USER_NOT_FOUND, e);
 		}
 	}
 
@@ -51,8 +52,7 @@ public class ExpenseController {
 			ExpenseResponseDTO response = expenseService.getExpenses(userKey, year, month, true);
 			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.OK.value(), "성공", response));
 		} catch (IllegalArgumentException e) {
-			return ResponseEntity.ok(
-				HttpStatusDTO.response(HttpStatus.INTERNAL_SERVER_ERROR.value(), "유저 정보 없음", null));
+			throw ApiException.of(ApiErrorCode.USER_NOT_FOUND, e);
 		}
 	}
 
@@ -78,8 +78,7 @@ public class ExpenseController {
 			// 1. 소비 기록 성공 -> 201
 			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.CREATED.value(), "성공", null));
 		} catch (Exception e) {
-			// 2. 소비 기록 실패 -> 500
-			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.INTERNAL_SERVER_ERROR.value(), "유저 정보 없음", null));
+			throw ApiException.of(ApiErrorCode.USER_NOT_FOUND, e);
 		}
 	}
 

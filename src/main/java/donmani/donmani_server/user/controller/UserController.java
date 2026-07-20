@@ -1,6 +1,8 @@
 package donmani.donmani_server.user.controller;
 
 import donmani.donmani_server.common.httpStatus.HttpStatusDTO;
+import donmani.donmani_server.common.exception.ApiErrorCode;
+import donmani.donmani_server.common.exception.ApiException;
 import donmani.donmani_server.expense.dto.NoticeReadDTO;
 import donmani.donmani_server.reward.dto.RewardCheckDTO;
 import donmani.donmani_server.user.dto.UpdateUserNoticeEnableRequestDTO;
@@ -74,9 +76,7 @@ public class UserController {
 			// 1. 닉네임 변경 성공 -> 201
 			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.CREATED.value(), "성공", user));
 		} catch (IllegalArgumentException e) {
-			// 2. 닉네임 변경 실패 -> 500
-			return ResponseEntity.ok(
-				HttpStatusDTO.response(HttpStatus.INTERNAL_SERVER_ERROR.value(), "유저 정보 없음", null));
+			throw ApiException.of(ApiErrorCode.USER_NOT_FOUND, e);
 		}
 	}
 
@@ -101,9 +101,7 @@ public class UserController {
 			// 1. 알림수신동의여부 변경 성공 -> 201
 			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.CREATED.value(), "성공", null));
 		} catch (IllegalArgumentException e) {
-			// 2. 알림수신동의여부 변경 실패 -> 500
-			return ResponseEntity.ok(
-				HttpStatusDTO.response(HttpStatus.INTERNAL_SERVER_ERROR.value(), "유저 정보 없음", null));
+			throw ApiException.of(ApiErrorCode.USER_NOT_FOUND, e);
 		}
 	}
 
@@ -116,9 +114,7 @@ public class UserController {
 			// 1. 최종접속일자 변경 성공 -> 201
 			return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.CREATED.value(), "성공", null));
 		} catch (IllegalArgumentException e) {
-			// 2. 최종접속일자 변경 실패 -> 500
-			return ResponseEntity.ok(
-				HttpStatusDTO.response(HttpStatus.INTERNAL_SERVER_ERROR.value(), "유저 정보 없음", null));
+			throw ApiException.of(ApiErrorCode.USER_NOT_FOUND, e);
 		}
 	}
 

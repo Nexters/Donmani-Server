@@ -1,5 +1,7 @@
 package donmani.donmani_server.reward.controller;
 
+import donmani.donmani_server.common.exception.ApiErrorCode;
+import donmani.donmani_server.common.exception.ApiException;
 import donmani.donmani_server.common.httpStatus.HttpStatusDTO;
 import donmani.donmani_server.reward.dto.HiddenUpdateRequestDTO;
 import donmani.donmani_server.reward.dto.RewardItemResponseDTO;
@@ -59,7 +61,7 @@ public class RewardController {
             rewardService.saveItem(request);
             return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.OK.value(), "성공", null));
         } catch (Exception e) {
-            return ResponseEntity.ok(HttpStatusDTO.response(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), null));
+            throw ApiException.of(ApiErrorCode.REWARD_SAVE_FAILED, e.getMessage(), e);
         }
 
     }
