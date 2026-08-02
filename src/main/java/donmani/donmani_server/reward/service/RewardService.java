@@ -1,7 +1,5 @@
 package donmani.donmani_server.reward.service;
 
-import donmani.donmani_server.common.exception.ApiErrorCode;
-import donmani.donmani_server.common.exception.ApiException;
 import donmani.donmani_server.feedback.entity.Feedback;
 import donmani.donmani_server.feedback.repository.FeedbackRepository;
 import donmani.donmani_server.reward.dto.HiddenUpdateRequestDTO;
@@ -41,17 +39,18 @@ public class RewardService {
      */
     @Transactional
     public void acquireRandomItems(String userKey, LocalDate reqDate) {
-        User user = userRepository.findByIdentifier(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
+        User user = userRepository.findByIdentifierForUpdate(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
+
+        long visibleItemCount = userItemRepository.countVisibleItemsByUser(user);
+        if(visibleItemCount >= MAX_REWARD) {
+            // 인당 최대 12개의 선물 생성 가능
+            return;
+        }
 
         List<UserItem> acquiredItems = userItemRepository.findAllByUser(user);
         Set<Long> acquiredItemIds = acquiredItems.stream()
                 .map(userItem -> userItem.getItem().getId())
                 .collect(Collectors.toSet());
-
-        if(acquiredItems.size() == MAX_REWARD) {
-            // 인당 최대 12개의 선물 생성 가능
-            return;
-        }
 
         // user가 가지고 있지 않은 아이템 중 랜덤으로 획득 (히든, 디폴트 제외)
         List<RewardItem> allItems = rewardItemRepository.findAllVisibleItemsExcludingDefaults();
@@ -96,7 +95,7 @@ public class RewardService {
     public List<RewardItemResponseDTO> openItems(String userKey) {
         LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
-        User user = userRepository.findByIdentifier(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
+        User user = userRepository.findByIdentifierForUpdate(userKey).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
         // 피드백 열기 (중간 이탈해도 피드백+선물 한 set으로 열기)
         Feedback notOpenedFeedback = feedbackRepository.findFeedbackByIsOpenedOrderByCreatedDateDesc(user.getId()).get(0);
@@ -130,8 +129,13 @@ public class RewardService {
     }
 
     private void acquireHiddenItems(User user) {
-        List<UserItem> acquiredItems = userItemRepository.findAllByUser(user);
-        if(acquiredItems.size() == MAX_REWARD) {
+        long visibleItemCount = userItemRepository.countVisibleItemsByUser(user);
+        if(visibleItemCount != MAX_REWARD) {
+            return;
+        }
+
+        boolean hasHiddenItem = userItemRepository.existsHiddenItemByUser(user);
+        if(!hasHiddenItem) {
             RewardItem hiddenItem = rewardItemRepository.findFirstByHiddenTrue().orElseThrow();
 
             // 히든 아이템 획득 시 isOpened 값을 활용하여 isHiddenRead 값을 판별
@@ -197,12 +201,11 @@ public class RewardService {
     public void updateHiddenRead(HiddenUpdateRequestDTO request) {
         User user = userRepository.findByIdentifier(request.getUserKey()).orElseThrow(() -> new RuntimeException("USER NOT FOUND"));
 
-        UserItem findItem = userItemRepository.findOneUnopenedHiddenItem(user)
-            .orElseThrow(() -> ApiException.of(ApiErrorCode.HIDDEN_ITEM_ALREADY_OPENED));
-
-        findItem.setOpened(true);
-
-        userItemRepository.save(findItem);
+        userItemRepository.findOneUnopenedHiddenItem(user)
+                .ifPresent(findItem -> {
+                    findItem.setOpened(true);
+                    userItemRepository.save(findItem);
+                });
     }
 
     /**
