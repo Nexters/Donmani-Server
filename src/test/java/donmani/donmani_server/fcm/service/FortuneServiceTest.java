@@ -1,10 +1,11 @@
 package donmani.donmani_server.fcm.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -14,8 +15,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import donmani.donmani_server.fcm.dto.FortuneHistoryResponseV1;
 import donmani.donmani_server.fcm.entity.Fortune;
-import donmani.donmani_server.fcm.entity.FortuneHistory;
-import donmani.donmani_server.fcm.entity.ReadSource;
 import donmani.donmani_server.fcm.repository.FortuneHistoryRepository;
 import donmani.donmani_server.fcm.repository.FortuneRepository;
 import donmani.donmani_server.user.service.UserService;
@@ -36,7 +35,7 @@ class FortuneServiceTest {
 	private UserService userService;
 
 	@Test
-	void getFortuneHistoriesReturnsReadFortunesInRepositoryOrder() {
+	void getFortuneHistoriesReturnsFortunesByTargetDateRangeInRepositoryOrder() {
 		FortuneService fortuneService = new FortuneService(
 			fortuneRepository,
 			fortuneHistoryRepository,
@@ -47,11 +46,9 @@ class FortuneServiceTest {
 		LocalDate endDate = LocalDate.of(2026, 7, 31);
 		Fortune firstFortune = fortune(LocalDate.of(2026, 7, 1), "image-1", "subtitle-1", "content-1", "item-1");
 		Fortune secondFortune = fortune(LocalDate.of(2026, 7, 3), "image-3", "subtitle-3", "content-3", "item-3");
-		FortuneHistory firstHistory = readHistory(firstFortune);
-		FortuneHistory secondHistory = readHistory(secondFortune);
 
-		when(fortuneHistoryRepository.findReadFortunesByTargetDateBetween("user-1234", startDate, endDate))
-			.thenReturn(List.of(firstHistory, secondHistory));
+		when(fortuneRepository.findAllByTargetDateBetweenOrderByTargetDateAsc(startDate, endDate))
+			.thenReturn(List.of(firstFortune, secondFortune));
 
 		List<FortuneHistoryResponseV1> response = fortuneService.getFortuneHistories(
 			"user-1234",
@@ -72,6 +69,11 @@ class FortuneServiceTest {
 				org.assertj.core.groups.Tuple.tuple(LocalDate.of(2026, 7, 1), "image-1", "subtitle-1", "content-1", "item-1"),
 				org.assertj.core.groups.Tuple.tuple(LocalDate.of(2026, 7, 3), "image-3", "subtitle-3", "content-3", "item-3")
 			);
+		verify(fortuneRepository).findAllByTargetDateBetweenOrderByTargetDateAsc(startDate, endDate);
+		verify(fortuneHistoryRepository, never()).findFortuneByTargetDate(
+			org.mockito.ArgumentMatchers.any(),
+			org.mockito.ArgumentMatchers.any()
+		);
 	}
 
 	private Fortune fortune(
@@ -90,14 +92,5 @@ class FortuneServiceTest {
 			.build();
 		fortune.updateImage(null, imageUrl, null, null);
 		return fortune;
-	}
-
-	private FortuneHistory readHistory(Fortune fortune) {
-		FortuneHistory fortuneHistory = FortuneHistory.builder()
-			.fortune(fortune)
-			.user(null)
-			.build();
-		fortuneHistory.markAsRead(ReadSource.NOTIFICATION, LocalDateTime.of(2026, 7, 1, 9, 0));
-		return fortuneHistory;
 	}
 }
