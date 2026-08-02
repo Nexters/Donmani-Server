@@ -161,12 +161,12 @@ public class FortuneService {
 	}
 
 	/**
-	 * 유저가 확인한 운세 이력을 기간으로 조회합니다.
+	 * 기간에 해당하는 운세 목록을 조회합니다.
 	 *
-	 * @param userKey 유저 고유 키
+	 * @param userKey 하위 호환을 위해 유지하는 유저 고유 키
 	 * @param startDate 조회 시작 일자
 	 * @param endDate 조회 종료 일자
-	 * @return 읽은 운세 이력 응답 목록
+	 * @return 운세 응답 목록
 	 */
 	@Transactional(readOnly = true)
 	public List<FortuneHistoryResponseV1> getFortuneHistories(
@@ -174,9 +174,9 @@ public class FortuneService {
 		LocalDate startDate,
 		LocalDate endDate
 	) {
-		return fortuneHistoryRepository.findReadFortunesByTargetDateBetween(userKey, startDate, endDate)
+		return fortuneRepository.findAllByTargetDateBetweenOrderByTargetDateAsc(startDate, endDate)
 			.stream()
-			.map(fortuneHistory -> FortuneHistoryResponseV1.from(fortuneHistory.getFortune()))
+			.map(FortuneHistoryResponseV1::from)
 			.toList();
 	}
 

@@ -32,6 +32,18 @@ public interface UserItemRepository extends JpaRepository<UserItem, Long> {
             @Param("user") User user
     );
 
+    @Query("SELECT COUNT(ui) FROM UserItem ui " +
+            "JOIN ui.item i " +
+            "WHERE ui.user = :user " +
+            "AND i.isHidden = false")
+    long countVisibleItemsByUser(@Param("user") User user);
+
+    @Query("SELECT COUNT(ui) > 0 FROM UserItem ui " +
+            "JOIN ui.item i " +
+            "WHERE ui.user = :user " +
+            "AND i.isHidden = true")
+    boolean existsHiddenItemByUser(@Param("user") User user);
+
     @Query("SELECT ui FROM UserItem ui " +
             "JOIN ui.item i " +
             "WHERE ui.user = :user " +

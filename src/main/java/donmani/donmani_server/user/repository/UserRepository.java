@@ -2,7 +2,9 @@ package donmani.donmani_server.user.repository;
 
 import java.util.Optional;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -14,4 +16,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 		   "LEFT JOIN FCMToken f ON f.user = u " +
 		   "WHERE u.userKey = :identifier OR f.token = :identifier")
 	Optional<User> findByIdentifier(@Param("identifier") String identifier);
+
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("SELECT DISTINCT u " +
+		   "FROM User u " +
+		   "LEFT JOIN FCMToken f ON f.user = u " +
+		   "WHERE u.userKey = :identifier OR f.token = :identifier")
+	Optional<User> findByIdentifierForUpdate(@Param("identifier") String identifier);
 }
