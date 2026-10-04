@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
@@ -48,6 +49,18 @@ class FailureNotificationMvcTest {
 			.andExpect(jsonPath("$.message").value("boom"));
 
 		assertThat(requestCount).hasValue(1);
+	}
+
+	@Test
+	void clientDisconnectDoesNotSendWebhook() throws Exception {
+		AtomicInteger requestCount = new AtomicInteger();
+		MockMvc mockMvc = mockMvc(requestCount);
+
+		mockMvc.perform(get("/api/v1/test/client-disconnected"))
+			.andExpect(status().isOk())
+			.andExpect(content().string(""));
+
+		assertThat(requestCount).hasValue(0);
 	}
 
 	@Test
@@ -263,6 +276,11 @@ class FailureNotificationMvcTest {
 		@GetMapping("/api/v1/test/unhandled")
 		String unhandled() {
 			throw new RuntimeException("boom");
+		}
+
+		@GetMapping("/api/v1/test/client-disconnected")
+		String clientDisconnected() throws AsyncRequestNotUsableException {
+			throw new AsyncRequestNotUsableException("Connection reset by peer");
 		}
 
 		@GetMapping("/api/v1/test/hidden")
