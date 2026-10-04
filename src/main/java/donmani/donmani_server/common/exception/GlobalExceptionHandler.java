@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -85,6 +86,13 @@ public class GlobalExceptionHandler {
         NoResourceFoundException ex
     ) {
         return ResponseEntity.notFound().build();
+    }
+
+    @ExceptionHandler(AsyncRequestNotUsableException.class)
+    public void handleClientDisconnected(
+        AsyncRequestNotUsableException ex
+    ) {
+        log.debug("Client disconnected while writing the response: {}", ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
